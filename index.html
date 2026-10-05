@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PreventAir AI</title>
+<meta name="description" content="PreventAir AI warns construction managers in Hanoi about dust risk up to 18 hours ahead, so they can move the work instead of paying the fine.">
+<meta property="og:title" content="PreventAir AI · AI for a safer construction site">
+<meta property="og:description" content="Dust violations are preventable. PreventAir AI tells you 18 hours ahead.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://ppa2903.github.io/PreventAir1/">
+<meta property="og:image" content="https://ppa2903.github.io/PreventAir1/assets/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0C3B2C">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+/* Layout: left-aligned editorial column on white/sage; forest-green bands carry the brand; ochre is reserved for dust and risk. */
+:root{
+  --ground:#FFFFFF; --ground-2:#F1F6F1; --ink:#10241B; --ink-2:#4B5E54; --line:#DAE4DC;
+  --pine:#17694B; --leaf:#74BF4D; --leaf-soft:#E5F2DC;
+  --forest:#0C3B2C; --forest-2:#134A37; --forest-line:#2A5B47; --on-forest:#ECF4EE; --on-forest-2:#A6C2B2; --dust-on-forest:#E6A85E;
+  --dust:#B87526; --dust-ink:#8A5414; --dust-soft:#F7ECDD; --crit:#C2412F; --crit-soft:#F8E3DF; --ok:#2E8B4E;
+  --card:#FFFFFF; --shadow:0 18px 40px -18px rgba(12,59,44,.35);
+  --f-display:"Lexend",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Source Sans 3",ui-sans-serif,system-ui,sans-serif;
+  --nav-h:68px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0A1510; --ground-2:#0F1D17; --ink:#E4EEE7; --ink-2:#9FB4A8; --line:#223630;
+  --pine:#7FCB93; --leaf:#86CF5C; --leaf-soft:#16301F;
+  --forest:#0F3527; --forest-2:#154333; --forest-line:#2C5847;
+  --dust:#D99A4B; --dust-ink:#E7B571; --dust-soft:#2B2113; --crit:#E36A57; --crit-soft:#33190F; --ok:#5DBB7A;
+  --card:#11211A; --shadow:0 18px 40px -18px rgba(0,0,0,.7); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ground:#0A1510; --ground-2:#0F1D17; --ink:#E4EEE7; --ink-2:#9FB4A8; --line:#223630;
+  --pine:#7FCB93; --leaf:#86CF5C; --leaf-soft:#16301F;
+  --forest:#0F3527; --forest-2:#154333; --forest-line:#2C5847;
+  --dust:#D99A4B; --dust-ink:#E7B571; --dust-soft:#2B2113; --crit:#E36A57; --crit-soft:#33190F; --ok:#5DBB7A;
+  --card:#11211A; --shadow:0 18px 40px -18px rgba(0,0,0,.7); color-scheme:dark}
+
+html{scroll-behavior:smooth;scroll-padding-top:calc(var(--nav-h) + 56px)}
+body{background:var(--ground);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;letter-spacing:-.015em}
+.wrap{max-width:1160px;margin-inline:auto;padding-inline:20px}
+@media(min-width:640px){.wrap{padding-inline:32px}}
+.sec{padding-block:88px}
+@media(max-width:640px){.sec{padding-block:60px}}
+.sec-tint{background:var(--ground-2)}
+.sec-forest{background:var(--forest);color:var(--on-forest)}
+.mut{color:var(--ink-2)}
+.on-f2{color:var(--on-forest-2)}
+.pine{color:var(--pine)}
+.line{border-color:var(--line)}
+.num{font-variant-numeric:tabular-nums}
+
+.t-hero{font-size:clamp(38px,5.6vw,58px);line-height:1.06;font-weight:700;letter-spacing:-.03em}
+.t-h1{font-size:clamp(32px,4.6vw,48px);line-height:1.1;font-weight:700;letter-spacing:-.025em}
+.t-h2{font-size:clamp(27px,3.3vw,36px);line-height:1.17;font-weight:600}
+.t-h3{font-size:20px;line-height:1.3;font-weight:600}
+.t-lead{font-size:19px;line-height:1.55}
+.t-sm{font-size:15px}
+.t-xs{font-size:13px;line-height:1.45}
+.measure{max-width:62ch}
+
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:3px 11px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2);background:var(--ground)}
+.pill i{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block}
+.pill-evidence{color:var(--dust-ink);border-color:color-mix(in srgb,var(--dust) 45%,transparent);background:var(--dust-soft)}
+.pill-concept{color:var(--pine);border-color:color-mix(in srgb,var(--pine) 40%,transparent);background:var(--leaf-soft)}
+.pill-dark{color:var(--on-forest-2);border-color:var(--forest-line);background:transparent}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--f-display);font-weight:500;font-size:16px;padding:12px 22px;border-radius:10px;cursor:pointer;text-decoration:none;background-image:linear-gradient(110deg,rgba(255,255,255,0) 36%,rgba(255,255,255,.3) 50%,rgba(255,255,255,0) 64%);background-size:230% 100%;background-position:150% 0;background-repeat:no-repeat;transition:background-position .8s cubic-bezier(.3,.7,.3,1),background-color .22s,color .22s,border-color .22s}
+.btn:hover{background-position:-55% 0}
+.btn-leaf{background-color:var(--leaf);color:#0B2A1F}
+.btn-leaf:hover{background-color:#8ED168}
+.btn-ghost{border:1px solid var(--forest-line);color:var(--on-forest)}
+.btn-ghost:hover{border-color:var(--on-forest-2);background-color:var(--forest-2)}
+.btn-pine{background-color:var(--forest);color:#ECF4EE}
+.btn-pine:hover{background-color:var(--forest-2)}
+.btn-outline{border:1px solid var(--line);color:var(--ink)}
+.btn-outline:hover{border-color:var(--pine);color:var(--pine)}
+a,button{-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--leaf);outline-offset:3px;border-radius:6px}
+
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:color-mix(in srgb,var(--ground) 88%,transparent);backdrop-filter:saturate(1.4) blur(12px);-webkit-backdrop-filter:saturate(1.4) blur(12px);border-bottom:1px solid var(--line)}
+.nav-link{font-family:var(--f-display);font-size:15px;font-weight:500;color:var(--ink-2);padding:6px 2px;border-bottom:2px solid transparent;transition:color .15s,border-color .15s}
+.nav-link:hover{color:var(--ink)}
+.nav-link[aria-current="page"]{color:var(--ink);border-color:var(--leaf)}
+.brand-word-img{display:block}
+.brand-word-txt{display:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .brand-word-img{display:none}:root:not([data-theme="light"]) .brand-word-txt{display:inline}}
+:root[data-theme="dark"] .brand-word-img{display:none}
+:root[data-theme="dark"] .brand-word-txt{display:inline}
+.word-prevent{color:var(--ink)}
+.word-air{color:var(--leaf)}
+
+.hero{position:relative;overflow:hidden;background:radial-gradient(1100px 520px at 85% 6%,var(--forest-2),transparent 62%),var(--forest);color:var(--on-forest)}
+.hero canvas{position:absolute;inset:0;width:100%;height:100%}
+
+/* product frame: the dashboard presented as a real app window */
+.frame{background:var(--card);color:var(--ink);border-radius:16px;overflow:hidden;box-shadow:0 34px 70px -28px rgba(0,0,0,.65);border:1px solid var(--line)}
+.frame-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--ground-2);border-bottom:1px solid var(--line)}
+.frame-dot{width:9px;height:9px;border-radius:50%;background:var(--line)}
+.frame-tabs{display:flex;gap:4px;padding:8px 10px 0;background:var(--ground-2);border-bottom:1px solid var(--line)}
+.frame-tab{font-family:var(--f-display);font-size:13.5px;font-weight:500;padding:8px 13px;border-radius:9px 9px 0 0;color:var(--ink-2);cursor:pointer;border:1px solid transparent;border-bottom:none;position:relative;top:1px}
+.frame-tab[aria-selected="true"]{background:var(--card);color:var(--ink);border-color:var(--line);font-weight:600}
+
+.stat-row>div+div{border-left:1px solid var(--line)}
+@media(max-width:767px){.stat-row>div+div{border-left:0;border-top:1px solid var(--line)}}
+.stat-num{font-family:var(--f-display);font-weight:600;font-size:clamp(44px,5.6vw,64px);line-height:1;letter-spacing:-.03em;color:var(--pine)}
+
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px}
+.panel-forest{background:var(--forest);color:var(--on-forest);border-radius:20px}
+.chip{display:inline-block;font-size:12.5px;font-weight:600;padding:2px 9px;border-radius:6px}
+.chip-crit{background:var(--crit-soft);color:var(--crit)}
+.icon-tile{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--leaf-soft);color:var(--pine)}
+.step-dot{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-weight:600;background:var(--ground);border:2px solid var(--leaf);color:var(--pine)}
+
+.subnav{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--nav-h) - 1px);z-index:40;background:color-mix(in srgb,var(--ground) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.subnav-in{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-block:10px}
+.subnav-in::-webkit-scrollbar{display:none}
+.subnav button{white-space:nowrap;font-size:14.5px;font-weight:600;color:var(--ink-2);padding:6px 13px;border-radius:999px}
+.subnav button:hover{background:var(--ground-2);color:var(--ink)}
+
+.field{margin-top:6px;width:100%;border:1px solid var(--line);background:var(--ground);color:var(--ink);border-radius:10px;padding:11px 13px;font-size:16px}
+.field:focus{outline:none;border-color:var(--pine);box-shadow:0 0 0 3px color-mix(in srgb,var(--leaf) 30%,transparent)}
+select.field option{color:#10241B;background:#fff}
+
+.faq{border-bottom:1px solid var(--line)}
+.faq summary{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding:22px 0;cursor:pointer;font-family:var(--f-display);font-weight:600;font-size:18px;list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font-size:24px;line-height:1;color:var(--pine);flex-shrink:0;font-weight:400}
+.faq[open] summary::after{content:"\2013"}
+.faq p{padding-bottom:22px;color:var(--ink-2);max-width:72ch}
+
+
+/* ===== motion ===== */
+.rv{opacity:0;transform:translateY(20px);transition:opacity .75s cubic-bezier(.22,.7,.2,1),transform .75s cubic-bezier(.22,.7,.2,1)}
+.rv.in{opacity:1;transform:none}
+@keyframes pa-rise{from{opacity:0;transform:translateY(26px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes pa-draw{to{stroke-dashoffset:0}}
+@keyframes pa-ping{0%{transform:scale(.65);opacity:.8}70%{transform:scale(2.2);opacity:0}100%{opacity:0}}
+@keyframes pa-kb{from{transform:scale(1.05)}to{transform:scale(1.15) translate3d(-1.4%,-1.2%,0)}}
+@keyframes pa-pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.frame{animation:pa-rise .85s .1s cubic-bezier(.22,.7,.2,1) both}
+.hero-stack>*{animation:pa-rise .8s both cubic-bezier(.22,.7,.2,1)}
+.hero-stack>*:nth-child(1){animation-delay:.04s}
+.hero-stack>*:nth-child(2){animation-delay:.13s}
+.hero-stack>*:nth-child(3){animation-delay:.22s}
+.hero-stack>*:nth-child(4){animation-delay:.31s}
+.draw{stroke-dasharray:640;stroke-dashoffset:640;animation:pa-draw 1.5s .2s cubic-bezier(.4,0,.2,1) forwards}
+.draw2{animation-delay:.6s}
+.live-dot{animation:pa-pulse 2s ease-in-out infinite}
+.lift{transition:transform .38s cubic-bezier(.22,.7,.2,1),box-shadow .38s,border-color .38s}
+.lift:hover{transform:translateY(-5px);box-shadow:0 22px 46px -26px rgba(12,59,44,.55);border-color:color-mix(in srgb,var(--pine) 50%,var(--line))}
+.icon-tile{transition:transform .38s cubic-bezier(.22,.7,.2,1)}
+.lift:hover .icon-tile{transform:scale(1.09) rotate(-5deg)}
+.nav-prog{position:absolute;left:0;bottom:-1px;height:2px;background:linear-gradient(90deg,var(--pine),var(--leaf));transition:width .1s linear;border-radius:0 2px 2px 0}
+.subnav button{transition:background .2s,color .2s}
+.subnav button.on{background:var(--forest);color:var(--on-forest)}
+
+/* ===== photo band ===== */
+.photo{position:relative;overflow:hidden;color:#fff;background:var(--forest)}
+.photo-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:54% 62%;animation:pa-kb 28s ease-in-out infinite alternate}
+.photo-shade{position:absolute;inset:0;background:linear-gradient(98deg,rgba(7,31,23,.95) 0%,rgba(7,31,23,.86) 30%,rgba(7,31,23,.52) 58%,rgba(7,31,23,.16) 100%)}
+@media(max-width:900px){.photo-shade{background:linear-gradient(180deg,rgba(7,31,23,.72) 0%,rgba(7,31,23,.9) 48%,rgba(7,31,23,.95) 100%)}.photo-img{object-position:62% 58%}}
+.hot{position:absolute;display:flex;align-items:center;gap:11px;z-index:2}
+.hot-dot{position:relative;width:13px;height:13px;border-radius:50%;background:var(--leaf);box-shadow:0 0 0 3px rgba(116,191,77,.3);flex:none}
+.hot-dot::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--leaf);animation:pa-ping 2.8s cubic-bezier(0,0,.2,1) infinite}
+.hot-label{font-family:var(--f-display);font-size:13px;font-weight:600;background:rgba(7,31,23,.74);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);border:1px solid rgba(255,255,255,.24);padding:5px 12px;border-radius:999px;white-space:nowrap}
+
+@media(prefers-reduced-motion:reduce){
+.rv{opacity:1;transform:none;transition:none}
+.frame,.hero-stack>*,.photo-img,.live-dot,.hot-dot::after{animation:none}
+.draw{stroke-dasharray:none;stroke-dashoffset:0;animation:none}
+.lift:hover{transform:none}}
+.fade{animation:fade .35s ease}@keyframes fade{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.fade{animation:none}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<noscript><p style="padding:24px">PreventAir AI needs JavaScript to display this page.</p></noscript>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script type="text/babel">
+const {useState,useEffect,useRef}=React;
+
+/* ===== Site config ===== */
+const CONTACT={email:'contact@preventair.ai',linkedin:'linkedin.com/company/preventair-ai',facebook:'facebook.com/PreventAirAI',location:'Hanoi, Vietnam'};
+const HREF={email:'mailto:'+CONTACT.email,linkedin:'https://www.'+CONTACT.linkedin,facebook:'https://www.'+CONTACT.facebook};
+/* Construction-site photos: add files to assets/sites/ and list them here. Empty = section hidden. */
+const SITES=[
+  // {src:'assets/sites/site-1.jpg',caption:'Excavation, Cầu Giấy'},
+];
+const SOURCE={name:'Báo Lao Động',url:'https://laodong.vn/ban-doc/chu-dau-tu-nha-thau-pha-do-cong-trinh-gay-bao-bui-o-ha-noi-bi-phat-200-trieu-dong-1686867.ldo'};
+const TEAM=[
+['Nguyễn Ngọc Trâm Anh','Product & Technology Lead','Leads product development and system design, translating construction-site challenges into practical technology requirements.','assets/team/1-tram-anh.jpg'],
+['Phạm Phương Anh','Business & Finance Lead','Focuses on business strategy, financial planning and building a sustainable B2B SaaS model.','assets/team/2-phuong-anh.jpg'],
+['Lê Minh Châu','Marketing & Communications Lead','Leads branding, communications and stakeholder engagement for PreventAir AI.','assets/team/3-minh-chau.jpg'],
+['Vũ Hương Giang','Research & Data Analysis Lead','Turns environmental and construction-related data into insights for evidence-based decision-making.','assets/team/4-huong-giang.jpg'],
+['Hoàng Minh Phương','Operations & Project Management Lead','Coordinates project activities, timelines and execution to keep the team aligned and the solution feasible.','assets/team/5-minh-phuong.jpg'],
+['Phạm Hải Thành','HR & People Development Lead','Supports team coordination, internal communication and people development to build a collaborative team culture.','assets/team/6-hai-thanh.jpg']];
+
+/* ===== Icons ===== */
+const IC={
+menu:'M4 6h16|M4 12h16|M4 18h16',x:'M18 6 6 18|M6 6l12 12',check:'M20 6 9 17l-5-5',arrow:'M5 12h14|M12 5l7 7-7 7',
+camera:'M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z|M12 13m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0',
+activity:'M22 12h-4l-3 9L9 3l-3 9H2',shield:'M20 13c0 5-3.5 7.5-7.7 8.97a1 1 0 0 1-.6 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z|M9 12l2 2 4-4',
+gauge:'M12 14l4-4|M3.34 19a10 10 0 1 1 17.32 0',bell:'M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9|M10.3 21a1.94 1.94 0 0 0 3.4 0',
+file:'M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z|M14 2v4a2 2 0 0 0 2 2h4|M10 9H8|M16 13H8|M16 17H8',
+loop:'M17 2l4 4-4 4|M3 11v-1a4 4 0 0 1 4-4h14|M7 22l-4-4 4-4|M21 13v1a4 4 0 0 1-4 4H3',
+pin:'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z|M12 10m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0',
+mail:'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z|M22 7l-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7',
+linkedin:'M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z|M2 9h4v12H2z|M4 4m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0',
+facebook:'M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z',
+build:'M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18z|M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2|M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2|M10 6h4|M10 10h4|M10 14h4|M10 18h4',
+send:'M22 2l-7 20-4-9-9-4z|M22 2L11 13',eye:'M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z|M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0',
+layers:'M12 2 2 7l10 5 10-5z|M2 17l10 5 10-5|M2 12l10 5 10-5',clock:'M12 12m-10 0a10 10 0 1 0 20 0a10 10 0 1 0-20 0|M12 6v6l4 2',
+db:'M12 5m-9 0a9 3 0 1 0 18 0a9 3 0 1 0-18 0|M3 5v14a9 3 0 0 0 18 0V5|M3 12a9 3 0 0 0 18 0',trend:'M22 7l-8.5 8.5-5-5L2 17|M16 7h6v6',
+droplet:'M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z',
+copy:'M8 8h12v12H8z|M4 16V4h12'};
+const I=({n,c='',s=20})=><svg className={c} width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{IC[n].split('|').map((d,i)=><path key={i} d={d}/>)}</svg>;
+
+/* ===== Routing ===== */
+const PAGES=[['home','Home'],['solution','Solution'],['about','About us'],['contact','Contact']];
+const KEYS=PAGES.map(p=>p[0]);
+const readHash=()=>{try{const h=(location.hash||'').replace(/^#\/?/,'');return KEYS.includes(h)?h:'home'}catch(e){return 'home'}};
+let navigate=()=>{};
+const A=({to,className='',children,onClick,...r})=><a href={'#/'+to} className={className} onClick={e=>{e.preventDefault();onClick&&onClick();navigate(to)}} {...r}>{children}</a>;
+const scrollToId=id=>document.getElementById(id)?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+
+/* ===== Brand ===== */
+const Brand=({onDark,size=34})=><span className="inline-flex items-center gap-2.5">
+{onDark?<span className="grid place-items-center rounded-xl" style={{background:'#fff',width:size+12,height:size+12}}><img src="assets/logo-mark.png" alt="" style={{height:size-4,width:'auto'}}/></span>:<img src="assets/logo-mark.png" alt="" style={{height:size,width:'auto'}}/>}
+{onDark
+ ?<span className="font-semibold tracking-tight" style={{fontFamily:'var(--f-display)',fontSize:size*0.62}}><span style={{color:'var(--on-forest)'}}>Prevent</span><span style={{color:'var(--leaf)'}}>air</span></span>
+ :<><img className="brand-word-img" src="assets/logo-wordmark.png" alt="PreventAir" style={{height:size*0.6,width:'auto'}}/><span className="brand-word-txt font-semibold tracking-tight" style={{fontFamily:'var(--f-display)',fontSize:size*0.62}}><span className="word-prevent">Prevent</span><span className="word-air">air</span></span></>}
+</span>;
+
+/* ===== Shared ===== */
+const Wrap=({children,c=''})=><div className={`wrap ${c}`}>{children}</div>;
+const Pill=({k='',children})=><span className={`pill ${k}`}><i/>{children}</span>;
+const RM=(()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){return false}})();
+function Reveal({children,d=0,c='',style}){const r=useRef();const[v,set]=useState(RM);
+useEffect(()=>{if(RM)return;let o;const t=setTimeout(()=>set(true),2200);
+try{o=new IntersectionObserver(([e])=>{if(e.isIntersecting){set(true);o.disconnect()}},{threshold:.08,rootMargin:'0px 0px -40px 0px'});o.observe(r.current)}catch(e){set(true)}
+return()=>{o&&o.disconnect();clearTimeout(t)}},[]);
+return <div ref={r} className={`rv ${v?'in':''} ${c}`} style={{...style,transitionDelay:d+'ms'}}>{children}</div>}
+function Count({to,fmt}){const r=useRef();const[n,set]=useState(RM?to:0);
+useEffect(()=>{if(RM)return;let o,raf,done=false;const run=()=>{if(done)return;done=true;const t0=performance.now();const step=t=>{const q=Math.min((t-t0)/1300,1);set(Math.round(to*(1-Math.pow(1-q,3))));if(q<1)raf=requestAnimationFrame(step)};raf=requestAnimationFrame(step)};
+const fb=setTimeout(()=>{if(!done){done=true;set(to)}},2400);
+try{o=new IntersectionObserver(([e])=>{if(e.isIntersecting){run();o.disconnect()}},{threshold:.35});o.observe(r.current)}catch(e){set(to)}
+return()=>{o&&o.disconnect();clearTimeout(fb);cancelAnimationFrame(raf)}},[to]);
+return <span ref={r}>{fmt?fmt(n):n}</span>}
+function useScrollPos(f){useEffect(()=>{if(RM)return;let raf;const h=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(f)};addEventListener('scroll',h,{passive:true});h();return()=>{removeEventListener('scroll',h);cancelAnimationFrame(raf)}},[])}
+const Head=({t,s,pill,pk,dark,c=''})=><Reveal c={`max-w-3xl ${c}`}>{pill&&<div className="mb-4"><Pill k={pk||(dark?'pill-dark':'')}>{pill}</Pill></div>}<h2 className="t-h2">{t}</h2>{s&&<p className={`t-lead mt-4 ${dark?'on-f2':'mut'}`}>{s}</p>}</Reveal>;
+
+/* ===== Dust drifting downwind (hero) ===== */
+function DustField(){const r=useRef();useEffect(()=>{const c=r.current,x=c.getContext('2d');if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;let w,h,id,ps=[],dpr=Math.min(devicePixelRatio||1,2);
+const mk=()=>({x:Math.random()*w*0.5,y:h*(0.45+Math.random()*0.55),r:Math.random()*2+0.4,vx:Math.random()*0.45+0.15,vy:-(Math.random()*0.12+0.02),a:Math.random()*0.32+0.1,life:0});
+const rs=()=>{w=c.offsetWidth;h=c.offsetHeight;c.width=w*dpr;c.height=h*dpr;x.setTransform(dpr,0,0,dpr,0,0);ps=Array.from({length:Math.min(80,w/14|0)},()=>{const p=mk();p.x=Math.random()*w;return p})};rs();addEventListener('resize',rs);
+const t=()=>{x.clearRect(0,0,w,h);ps.forEach((p,i)=>{p.x+=p.vx;p.y+=p.vy+Math.sin((p.x+i*40)/90)*0.15;p.life++;if(p.x>w+10||p.y<-10){ps[i]=mk()}const fade=Math.min(1,p.life/80);x.fillStyle=`rgba(214,170,110,${p.a*fade})`;x.beginPath();x.arc(p.x,p.y,p.r,0,7);x.fill()});id=requestAnimationFrame(t)};t();
+return()=>{cancelAnimationFrame(id);removeEventListener('resize',rs)}},[]);
+return <canvas ref={r} aria-hidden="true"/>}
+
+/* ===== Risk forecast (canonical: tomorrow 08:00-11:00, 71% to 11%) ===== */
+const RISK_NOW=[[0,9],[3,8],[6,14],[7,29],[8,52],[9,68],[9.5,71],[10,65],[11,44],[12,27],[14,20],[16,17],[18,13],[21,10],[24,9]];
+const RISK_PLAN=[[0,8],[3,7],[6,9],[8,10],[9.5,11],[11,9],[12,8],[14,11],[16,9],[18,8],[21,7],[24,7]];
+function smooth(pts){let d=`M${pts[0][0]},${pts[0][1]}`;for(let i=0;i<pts.length-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;const c1=[p1[0]+(p2[0]-p0[0])/6,p1[1]+(p2[1]-p0[1])/6],c2=[p2[0]-(p3[0]-p1[0])/6,p2[1]-(p3[1]-p1[1])/6];d+=` C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`}return d}
+function RiskChart(){const X0=36,X1=296,Y0=112,Y1=16;const sx=h=>X0+(X1-X0)*h/24,sy=v=>Y0-(Y0-Y1)*v/100;
+const now=RISK_NOW.map(([a,b])=>[sx(a),sy(b)]),plan=RISK_PLAN.map(([a,b])=>[sx(a),sy(b)]);
+return <svg viewBox="0 0 320 136" className="w-full h-auto" role="img" aria-label="Forecast for tomorrow: dust risk peaks at 71 percent between 08:00 and 11:00 if nothing changes, and stays at or below 11 percent once the excavation moves to 14:00">
+<rect x={sx(8)} y={Y1} width={sx(11)-sx(8)} height={Y0-Y1} fill="var(--dust-soft)"/>
+{[0,50,100].map(v=><g key={v}><line x1={X0} x2={X1} y1={sy(v)} y2={sy(v)} stroke="var(--line)" strokeDasharray={v?'3 4':''}/><text x={X0-6} y={sy(v)+4} fontSize="10" textAnchor="end" fill="var(--ink-2)">{v}%</text></g>)}
+{[[0,'00:00'],[6,'06:00'],[12,'12:00'],[18,'18:00'],[24,'24:00']].map(([t,l])=><text key={t} x={sx(t)} y={Y0+16} fontSize="10" textAnchor="middle" fill="var(--ink-2)">{l}</text>)}
+<path className="draw" d={smooth(now)} fill="none" stroke="var(--dust)" strokeWidth="2.4" strokeLinecap="round"/>
+<path className="draw draw2" d={smooth(plan)} fill="none" stroke="var(--pine)" strokeWidth="2.4" strokeLinecap="round"/>
+<circle cx={sx(9.5)} cy={sy(71)} r="3.6" fill="var(--dust)"/><text x={sx(9.5)+7} y={sy(71)+4} fontSize="11" fontWeight="600" fill="var(--dust-ink)">71%</text>
+<circle cx={sx(14)} cy={sy(11)} r="3.6" fill="var(--pine)"/><text x={sx(14)+6} y={sy(11)-9} fontSize="11" fontWeight="600" fill="var(--pine)">11%</text>
+</svg>}
+
+/* ===== Hero product frame: three product moments the visitor can click through ===== */
+const TABS=[['forecast','Forecast'],['alert','Live alert'],['record','Compliance record']];
+function ProductFrame(){const[t,setT]=useState('forecast');
+const key=e=>{const i=TABS.findIndex(x=>x[0]===t);if(e.key==='ArrowRight'){e.preventDefault();setT(TABS[(i+1)%TABS.length][0])}if(e.key==='ArrowLeft'){e.preventDefault();setT(TABS[(i+TABS.length-1)%TABS.length][0])}};
+return <div className="frame">
+<div className="frame-bar"><span className="frame-dot"/><span className="frame-dot"/><span className="frame-dot"/><span className="t-xs mut ml-2 truncate">Trung Hòa · HN-CG-0412 · Cầu Giấy, Hà Nội</span></div>
+<div className="frame-tabs" role="tablist" aria-label="Product views" onKeyDown={key}>{TABS.map(([k,l])=><button key={k} role="tab" type="button" id={'tab-'+k} aria-selected={t===k} aria-controls={'panel-'+k} tabIndex={t===k?0:-1} className="frame-tab" onClick={()=>setT(k)}>{l}</button>)}</div>
+<div className="p-5" role="tabpanel" id={'panel-'+t} aria-labelledby={'tab-'+t} key={t}>
+{t==='forecast'&&<div className="fade">
+<div className="flex items-start justify-between gap-3"><div><div className="t-xs mut">Advisory sent yesterday 15:02, 18 hours ahead</div><h3 className="t-h3 mt-1">Dust risk tomorrow, 08:00 to 11:00</h3></div><span className="chip chip-crit shrink-0">High</span></div>
+<p className="t-sm mut mt-2">South-easterly wind at 3 to 4 m/s will carry dust from the open excavation toward the Trung Hòa residential block. About 1,120 residents and Kim Liên primary school are downwind.</p>
+<div className="mt-3"><RiskChart/></div>
+<div className="flex flex-wrap gap-x-5 gap-y-1 t-xs mut"><span className="flex items-center gap-1.5"><i style={{width:14,height:3,background:'var(--dust)',display:'inline-block',borderRadius:2}}/>If nothing changes</span><span className="flex items-center gap-1.5"><i style={{width:14,height:3,background:'var(--pine)',display:'inline-block',borderRadius:2}}/>With the advice applied</span></div>
+<div className="mt-4 rounded-xl p-4 flex items-start gap-3" style={{background:'var(--leaf-soft)'}}><span className="pine mt-0.5"><I n="check" s={18}/></span><div><div className="font-semibold t-sm">Move the block B excavation to 14:00</div><div className="t-xs mut mt-0.5">Peak risk falls from 71% to 11%. No extra cost, no lost hours.</div></div></div></div>}
+
+{t==='alert'&&<div className="fade">
+<div className="flex items-start justify-between gap-3"><div><div className="t-xs mut">Detected today 09:41, notified 09:47</div><h3 className="t-h3 mt-1">PM10 spike at the north fence line</h3></div><span className="chip chip-crit shrink-0">Critical</span></div>
+<div className="mt-4"><CameraFrame/></div>
+<div className="mt-3 rounded-xl p-3" style={{background:'var(--ground-2)'}}><div className="flex justify-between t-xs mut"><span>Downwind PM10</span><span>4.2σ above the 2σ threshold</span></div><svg viewBox="0 0 300 44" className="w-full h-11 mt-1" aria-hidden="true"><line x1="0" y1="30" x2="300" y2="30" stroke="var(--line)" strokeDasharray="3 3"/><polyline points="0,38 46,36 92,37 130,30 160,6 190,26 230,35 300,36" fill="none" stroke="var(--dust)" strokeWidth="2.4" strokeLinejoin="round"/></svg></div>
+<div className="mt-3 grid grid-cols-3 gap-2 t-xs">{[['0.71','this site'],['0.19','next site'],['24 s','to detect']].map(([v,k])=><div key={k} className="rounded-lg p-2.5" style={{background:'var(--ground-2)'}}><div className="num font-semibold text-[15px]" style={{fontFamily:'var(--f-display)'}}>{v}</div><div className="mut mt-0.5">{k}</div></div>)}</div>
+<div className="mt-3 rounded-xl p-4" style={{background:'var(--crit-soft)'}}><div className="t-sm font-semibold flex items-center gap-2" style={{color:'var(--crit)'}}><I n="bell" s={16}/>Sent to Anh Tuấn on Zalo</div><p className="t-xs mt-1" style={{color:'var(--ink)'}}>Cover the load and switch the gate misters on. Deadline 30 minutes. Exposure if unresolved: 15 to 20 million VND under NĐ 16/2022, Điều 16.</p></div></div>}
+
+{t==='record'&&<div className="fade">
+<div className="flex items-start justify-between gap-3"><div><div className="t-xs mut">August 2026, month to date</div><h3 className="t-h3 mt-1">Compliance record</h3></div><span className="chip shrink-0" style={{background:'var(--leaf-soft)',color:'var(--pine)'}}>Score 88</span></div>
+<div className="grid grid-cols-2 gap-x-5 gap-y-4 mt-4">{[['2','dust events, both fixed in time'],['0','violations recorded'],['11 min','average time to remediation'],['22 / 22','days with no work stoppage']].map(([v,k])=><div key={k}><div className="num font-semibold text-[22px] pine" style={{fontFamily:'var(--f-display)'}}>{v}</div><div className="t-xs mut mt-0.5">{k}</div></div>)}</div>
+<div className="mt-4 rounded-xl p-4" style={{background:'var(--ground-2)'}}><div className="t-sm font-semibold">Every event files itself</div><ul className="mt-2 grid gap-1.5 t-xs mut">{['Timestamped camera frames and sensor readings','The advisory that was sent, and who accepted it','What was done, by whom, and how long it took'].map(x=><li key={x} className="flex gap-2"><span className="pine shrink-0"><I n="check" s={14}/></span>{x}</li>)}</ul></div>
+<p className="t-xs mut mt-3">Ready to hand to an inspector without assembling anything.</p></div>}
+</div>
+<div className="px-5 py-2.5 t-xs mut border-t line" style={{background:'var(--ground-2)'}}>Illustrative pilot data. Not a real site record.</div>
+</div>}
+
+/* ===== Illustrations (drawn in code, no external assets) ===== */
+const FAR=Array.from({length:44},(_,i)=>[i*28,22+((i*7)%4)*13+((i*5)%3)*9]);
+
+const SiteSkyline=()=><svg className="absolute left-0 bottom-0 w-full pointer-events-none select-none" style={{height:206}} viewBox="0 0 1200 206" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">
+<defs>
+<linearGradient id="pa-haze" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#D9AE72" stopOpacity=".30"/><stop offset=".5" stopColor="#D9AE72" stopOpacity=".13"/><stop offset="1" stopColor="#D9AE72" stopOpacity="0"/></linearGradient>
+<linearGradient id="pa-rise" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stopColor="#D9AE72" stopOpacity=".40"/><stop offset="1" stopColor="#D9AE72" stopOpacity="0"/></linearGradient>
+<linearGradient id="pa-slab" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="var(--forest-line)"/><stop offset="1" stopColor="var(--forest)"/></linearGradient>
+<linearGradient id="pa-tower" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="var(--forest-line)"/><stop offset="1" stopColor="var(--forest)"/></linearGradient>
+<pattern id="pa-net" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M0 0h6M0 0v6" stroke="var(--on-forest-2)" strokeWidth=".55" opacity=".45" fill="none"/></pattern>
+</defs>
+
+<g opacity=".32" fill="var(--forest-line)">{FAR.map(([x,h],i)=><rect key={"f"+i} x={x} y={150-h} width="25" height={h} rx="1"/>)}</g>
+<rect x="0" y="40" width="1200" height="166" fill="url(#pa-haze)"/>
+
+<g>
+<rect x="52" y="22" width="60" height="134" rx="2" fill="url(#pa-tower)"/>
+<rect x="118" y="52" width="44" height="104" rx="2" fill="url(#pa-tower)"/>
+<rect x="166" y="74" width="34" height="82" rx="2" fill="url(#pa-tower)"/>
+<g fill="var(--on-forest-2)" opacity=".30">
+{Array.from({length:7},(_,r)=>Array.from({length:4},(_,c)=><rect key={"a"+r+c} x={60+c*14} y={32+r*17} width="7" height="9" rx="1"/>))}
+{Array.from({length:5},(_,r)=>Array.from({length:3},(_,c)=><rect key={"b"+r+c} x={126+c*13} y={62+r*17} width="7" height="9" rx="1"/>))}
+{Array.from({length:4},(_,r)=>Array.from({length:2},(_,c)=><rect key={"c"+r+c} x={174+c*13} y={84+r*17} width="7" height="9" rx="1"/>))}
+</g>
+<g fill="#F4D9A4" opacity=".5">{[[60,66],[88,117],[140,96],[153,147],[187,118]].map(([x,y],i)=><rect key={"lit"+i} x={x} y={y} width="7" height="9" rx="1"/>)}</g>
+<path d="M214 156v-34h78v34z" fill="var(--forest-line)"/>
+<path d="M208 122l45-21 45 21z" fill="var(--on-forest-2)" opacity=".5"/>
+<g fill="var(--on-forest-2)" opacity=".3">{Array.from({length:4},(_,i)=><rect key={"s"+i} x={224+i*18} y={132} width="10" height="12" rx="1"/>)}</g>
+<path d="M300 156v-26" stroke="var(--on-forest-2)" strokeWidth="1.6" opacity=".5" fill="none"/>
+<path d="M300 130l14 5-14 5z" fill="var(--leaf)" opacity=".55"/>
+</g>
+
+<g>
+<rect x="330" y="48" width="170" height="108" fill="url(#pa-slab)" opacity=".55"/>
+{Array.from({length:5},(_,i)=><rect key={"sl"+i} x="326" y={48+i*22} width="178" height="5" rx="1" fill="var(--forest-line)"/>)}
+{Array.from({length:5},(_,i)=><rect key={"co"+i} x={330+i*36} y="48" width="5" height="108" fill="var(--forest-line)"/>)}
+<rect x="330" y="114" width="170" height="42" fill="var(--forest)" opacity=".85"/>
+<g fill="var(--on-forest-2)" opacity=".26">{Array.from({length:2},(_,r)=>Array.from({length:4},(_,c)=><rect key={"bw"+r+c} x={340+c*36} y={122+r*20} width="14" height="12" rx="1"/>))}</g>
+<rect x="326" y="48" width="178" height="70" fill="url(#pa-net)"/>
+<rect x="326" y="46" width="178" height="4" rx="2" fill="var(--on-forest-2)" opacity=".4"/>
+</g>
+
+<g stroke="var(--on-forest-2)" fill="none" opacity=".55" strokeLinecap="round">
+<g strokeWidth="2.6"><path d="M528 160V30M548 160V30"/></g>
+<g strokeWidth="1.3">{Array.from({length:9},(_,i)=><path key={"x"+i} d={"M528 "+(30+i*14.5)+"L548 "+(44.5+i*14.5)+"M548 "+(30+i*14.5)+"L528 "+(44.5+i*14.5)}/>)}</g>
+<path d="M528 30l10-16 10 16" strokeWidth="2"/>
+<g strokeWidth="2.2"><path d="M556 30h158M556 44h150"/></g>
+<g strokeWidth="1.1">{Array.from({length:9},(_,i)=><path key={"j"+i} d={"M"+(556+i*17)+" 30L"+(573+i*17)+" 44"}/>)}</g>
+<g strokeWidth="2.2"><path d="M520 30h-72M520 44h-62"/></g>
+<g strokeWidth="1.1">{Array.from({length:4},(_,i)=><path key={"k"+i} d={"M"+(520-i*17)+" 30L"+(503-i*17)+" 44"}/>)}</g>
+<path d="M538 14l172 16M538 14l-92 16" strokeWidth="1.4"/>
+<path d="M666 44v52" strokeWidth="1.2"/>
+</g>
+<rect x="428" y="24" width="28" height="22" rx="2" fill="var(--on-forest-2)" opacity=".45"/>
+<rect x="658" y="96" width="17" height="11" rx="2" fill="var(--on-forest-2)" opacity=".55"/>
+<rect x="550" y="46" width="15" height="15" rx="2" fill="var(--on-forest-2)" opacity=".45"/>
+
+<g opacity=".5"><rect x="300" y="150" width="900" height="26" fill="var(--forest)"/>
+<rect x="300" y="147" width="900" height="5" rx="2" fill="var(--forest-line)"/>
+{Array.from({length:33},(_,i)=><line key={"fe"+i} x1={318+i*27} y1="152" x2={318+i*27} y2="176" stroke="var(--forest-line)" strokeWidth="1.4"/>)}</g>
+
+<ellipse cx="630" cy="150" rx="86" ry="42" fill="url(#pa-rise)"/>
+<ellipse cx="804" cy="156" rx="64" ry="32" fill="url(#pa-rise)"/>
+
+<g fill="var(--forest-line)">
+<ellipse cx="620" cy="183" rx="54" ry="5" fill="var(--forest)" opacity=".55"/>
+<rect x="578" y="166" width="84" height="16" rx="8"/>
+<g fill="var(--forest)" opacity=".7">{Array.from({length:5},(_,i)=><circle key={"t"+i} cx={590+i*16} cy="174" r="4"/>)}</g>
+<rect x="592" y="142" width="52" height="25" rx="4"/>
+<rect x="596" y="126" width="26" height="18" rx="3"/>
+<rect x="600" y="130" width="17" height="10" rx="1.5" fill="var(--on-forest-2)" opacity=".45"/>
+<path d="M642 138l34-24 7 10-34 24z"/><path d="M676 118l16 26-9 6-16-26z"/>
+<path d="M686 148l16 2-3 14-16-4z"/>
+</g>
+
+<g>
+<ellipse cx="938" cy="184" rx="58" ry="5" fill="var(--forest)" opacity=".55"/>
+<path d="M900 172V146l62-10v36z" fill="var(--forest-line)"/>
+<path d="M902 142l58-10 4 8-62 10z" fill="var(--on-forest-2)" opacity=".35"/>
+<rect x="964" y="148" width="30" height="26" rx="3" fill="var(--forest-line)"/>
+<rect x="968" y="152" width="18" height="11" rx="2" fill="var(--on-forest-2)" opacity=".45"/>
+<rect x="892" y="170" width="106" height="8" rx="3" fill="var(--forest-line)"/>
+<g fill="var(--forest)"><circle cx="912" cy="180" r="8"/><circle cx="944" cy="180" r="8"/><circle cx="982" cy="180" r="8"/></g>
+</g>
+
+<g>
+<ellipse cx="804" cy="182" rx="46" ry="4" fill="var(--forest)" opacity=".5"/>
+<path d="M760 180q44-54 88 0z" fill="var(--forest-line)"/>
+<path d="M760 180q24-30 44-28 6 16 2 28z" fill="var(--on-forest-2)" opacity=".30"/>
+<path d="M804 152l2 28M782 160l-6 20" stroke="var(--forest)" strokeWidth="1.2" opacity=".5" fill="none"/>
+</g>
+<g><ellipse cx="1068" cy="181" rx="30" ry="3.5" fill="var(--forest)" opacity=".45"/><path d="M1040 180q28-34 56 0z" fill="var(--forest-line)" opacity=".8"/></g>
+
+<g stroke="var(--leaf)" fill="none" opacity=".3" strokeWidth="1.3" strokeLinecap="round">
+<path d="M352 176v-26M352 154q14 4 18 16M352 158q10 8 10 18M352 162q4 10 2 14"/>
+<path d="M1140 176v-24M1140 156q14 4 18 16M1140 160q10 8 10 16"/></g>
+
+<rect x="0" y="176" width="1200" height="30" fill="var(--forest)" opacity=".75"/>
+<rect x="0" y="176" width="1200" height="3" fill="var(--forest-line)"/>
+<g stroke="var(--forest-line)" strokeWidth="1" opacity=".45">{Array.from({length:16},(_,i)=><line key={"g"+i} x1={i*80} y1={188+(i%3)*5} x2={i*80+46} y2={188+(i%3)*5}/>)}</g>
+</svg>;
+
+function PlumeMap(){return <svg viewBox="0 0 480 300" className="w-full h-auto" role="img" aria-label="Site map. A south-easterly wind carries dust from the excavation at the Trung Hoa site about 400 metres north-west, across a residential block of roughly 1,120 people and Kim Lien primary school.">
+<defs>
+<pattern id="pa-grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0v24" fill="none" stroke="var(--line)" strokeWidth=".7" opacity=".55"/></pattern>
+<pattern id="pa-dig" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="7" stroke="var(--dust)" strokeWidth="1.5" opacity=".34"/></pattern>
+<marker id="pa-ar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0l9 4.5L0 9z" fill="var(--pine)"/></marker>
+<clipPath id="pa-clip"><rect x="1" y="1" width="478" height="298" rx="14"/></clipPath>
+</defs>
+<g clipPath="url(#pa-clip)">
+<rect width="480" height="300" fill="var(--card)"/>
+<rect width="480" height="300" fill="url(#pa-grid)"/>
+<path d="M-10 212L200 132 300 300" stroke="var(--line)" strokeWidth="9" fill="none"/>
+<path d="M-10 212L200 132 300 300" stroke="var(--card)" strokeWidth="5" fill="none"/>
+<g fill="var(--ink)" opacity=".12"><rect x="196" y="236" width="44" height="34" rx="2"/><rect x="246" y="22" width="40" height="30" rx="2"/><rect x="12" y="236" width="52" height="26" rx="2"/></g>
+<path d="M322 138 L18 14 L-6 190 L330 182 Z" fill="var(--dust)" opacity=".10"/>
+<path d="M322 143 L86 44 L44 166 L326 176 Z" fill="var(--dust)" opacity=".13"/>
+<path d="M322 148 L150 72 L120 146 L324 170 Z" fill="var(--dust)" opacity=".20"/>
+<g fill="var(--ink)" opacity=".82"><rect x="70" y="50" width="56" height="64" rx="2"/><rect x="134" y="68" width="42" height="46" rx="2"/></g>
+<g fill="var(--card)" opacity=".55">{Array.from({length:5},(_,r)=>Array.from({length:3},(_,c)=><rect key={"p"+r+c} x={78+c*16} y={58+r*11} width="8" height="6"/>))}
+{Array.from({length:3},(_,r)=>Array.from({length:2},(_,c)=><rect key={"q"+r+c} x={142+c*16} y={78+r*11} width="8" height="6"/>))}</g>
+<g><rect x="64" y="178" width="76" height="36" rx="2" fill="var(--pine)"/><path d="M60 178l42-17 42 17z" fill="var(--pine)" opacity=".75"/>
+<g fill="var(--card)" opacity=".5">{Array.from({length:4},(_,i)=><rect key={"sw"+i} x={72+i*18} y="188" width="10" height="12" rx="1"/>)}</g></g>
+<rect x="290" y="110" width="172" height="140" rx="10" fill="var(--ground-2)" stroke="var(--pine)" strokeWidth="1.8" strokeDasharray="7 5"/>
+<rect x="306" y="132" width="76" height="48" rx="4" fill="url(#pa-dig)" stroke="var(--dust)" strokeWidth="1.3"/>
+<path d="M398 200q20-26 40 0z" fill="var(--dust)" opacity=".55"/><path d="M398 200q11-15 22-15 3 9 1 15z" fill="var(--dust)" opacity=".3"/>
+<rect x="398" y="124" width="30" height="20" rx="2" fill="var(--ink)" opacity=".3"/>
+<path d="M290 232h18" stroke="var(--ground-2)" strokeWidth="6"/>
+<line x1="470" y1="288" x2="428" y2="244" stroke="var(--pine)" strokeWidth="2.8" markerEnd="url(#pa-ar)" strokeLinecap="round"/>
+<g opacity=".5" stroke="var(--pine)" strokeWidth="1.6" fill="none" strokeLinecap="round"><path d="M452 286l-28-30M434 290l-18-20"/></g>
+<line x1="288" y1="152" x2="192" y2="112" stroke="var(--ink-2)" strokeWidth="1.2" strokeDasharray="4 4"/>
+<g><rect x="266" y="124" width="13" height="13" rx="3" fill="var(--pine)"/><rect x="269" y="127" width="7" height="7" rx="1.5" fill="var(--card)" opacity=".7"/></g>
+<g><rect x="436" y="220" width="13" height="13" rx="3" fill="var(--pine)"/><rect x="439" y="223" width="7" height="7" rx="1.5" fill="var(--card)" opacity=".7"/></g>
+<g fill="var(--pine)">{[[300,238],[392,122],[450,188]].map(([cx,cy],i)=><g key={"cam"+i}><circle cx={cx} cy={cy} r="5"/><circle cx={cx} cy={cy} r="9" fill="none" stroke="var(--pine)" strokeWidth="1" opacity=".45"/></g>)}</g>
+<g fontSize="9.5" fill="var(--ink-2)" fontFamily="var(--f-body)">
+<text x="70" y="42" fontSize="10.5" fontWeight="600" fill="var(--ink)">Residential block</text>
+<text x="70" y="128">about 1,120 residents</text>
+<text x="64" y="228" fontSize="10.5" fontWeight="600" fill="var(--ink)">Kim Li&#234;n primary school</text>
+<text x="200" y="106">400 m downwind</text>
+<text x="344" y="160" fill="var(--dust-ink)" fontWeight="600">Excavation</text>
+<text x="292" y="266" fontWeight="600" fill="var(--ink)">Trung H&#242;a site</text>
+<text x="424" y="290" textAnchor="end" fill="var(--pine)" fontWeight="600">SE wind 3 to 4 m/s</text>
+</g>
+<g transform="translate(452,30)"><circle r="13" fill="var(--ground-2)" stroke="var(--line)"/><path d="M0 -9l4 9-4 -2-4 2z" fill="var(--ink)"/><path d="M0 9l4-9-4 2-4-2z" fill="var(--ink-2)" opacity=".5"/><text y="-15" fontSize="8.5" textAnchor="middle" fill="var(--ink-2)" fontFamily="var(--f-body)" fontWeight="600">N</text></g>
+<g stroke="var(--ink-2)" strokeWidth="1.2"><line x1="150" y1="284" x2="220" y2="284"/><line x1="150" y1="280" x2="150" y2="288"/><line x1="220" y1="280" x2="220" y2="288"/><line x1="185" y1="281" x2="185" y2="287"/></g>
+<text x="185" y="276" fontSize="9" textAnchor="middle" fill="var(--ink-2)" fontFamily="var(--f-body)">200 m</text>
+</g>
+<rect x="1" y="1" width="478" height="298" rx="14" fill="none" stroke="var(--line)"/>
+</svg>}
+
+function CameraFrame(){return <svg viewBox="0 0 320 180" className="w-full h-auto rounded-lg" role="img" aria-label="Camera view from CAM-02 at 09:41. The model has boxed an uncovered truck load at 0.93 confidence and a switched-off mister line at 0.88.">
+<defs>
+<linearGradient id="pa-sky2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#333E3B"/><stop offset=".55" stopColor="#4E5247"/><stop offset="1" stopColor="#6A6454"/></linearGradient>
+<linearGradient id="pa-grd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#59543F"/><stop offset="1" stopColor="#3D3A2D"/></linearGradient>
+<linearGradient id="pa-load" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#A08960"/><stop offset="1" stopColor="#6E5C3C"/></linearGradient>
+<radialGradient id="pa-puff" cx=".5" cy=".6" r=".5"><stop offset="0" stopColor="#D9C49B" stopOpacity=".6"/><stop offset="1" stopColor="#D9C49B" stopOpacity="0"/></radialGradient>
+<radialGradient id="pa-vig" cx=".5" cy=".48" r=".72"><stop offset=".5" stopColor="#000" stopOpacity="0"/><stop offset="1" stopColor="#000" stopOpacity=".5"/></radialGradient>
+<pattern id="pa-scan" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height="1.1" fill="#000" opacity=".13"/></pattern>
+<pattern id="pa-mesh" width="5" height="5" patternUnits="userSpaceOnUse"><path d="M0 5L5 0M-1 1L1 -1M4 6L6 4" stroke="#8C8470" strokeWidth=".7" opacity=".7" fill="none"/></pattern>
+<clipPath id="pa-cc"><rect width="320" height="180" rx="6"/></clipPath>
+</defs>
+<g clipPath="url(#pa-cc)">
+<rect width="320" height="180" fill="url(#pa-sky2)"/>
+<g fill="#3C443F" opacity=".75"><rect x="6" y="44" width="52" height="54"/><rect x="216" y="30" width="44" height="68"/><rect x="264" y="52" width="40" height="46"/></g>
+<g fill="#5A6058" opacity=".5">{Array.from({length:3},(_,r)=>Array.from({length:3},(_,c)=><rect key={"bw"+r+c} x={222+c*12} y={40+r*16} width="7" height="9"/>))}</g>
+<rect y="98" width="320" height="82" fill="url(#pa-grd)"/>
+<g stroke="#6E6854" strokeWidth=".8" opacity=".5">{Array.from({length:7},(_,i)=><line key={"pg"+i} x1={-40+i*70} y1="180" x2={118+i*18} y2="100"/>)}{Array.from({length:4},(_,i)=><line key={"ph"+i} x1="0" y1={108+i*18+i*i*2} x2="320" y2={108+i*18+i*i*2}/>)}</g>
+<g><rect x="0" y="86" width="320" height="22" fill="url(#pa-mesh)"/><rect x="0" y="84" width="320" height="3" fill="#7D765F"/>{Array.from({length:9},(_,i)=><rect key={"fp"+i} x={4+i*38} y="84" width="3.5" height="26" fill="#6E6854"/>)}</g>
+<path d="M226 134q34-36 68 0z" fill="#6E5C3C"/><path d="M226 134q18-20 34-18 4 10 1 18z" fill="#8C7752" opacity=".7"/>
+<ellipse cx="124" cy="146" rx="70" ry="6" fill="#000" opacity=".28"/>
+<g><path d="M60 110h92v26H60z" fill="#28302D"/><path d="M60 110h92v6H60z" fill="#3A4441"/>
+<path d="M152 96h32l6 14v26h-38z" fill="#2B3431"/><path d="M157 100h22l5 10h-27z" fill="#8FA7B2" opacity=".55"/>
+<rect x="56" y="132" width="132" height="6" rx="2" fill="#1F2724"/>
+<g fill="#161C1A"><circle cx="82" cy="142" r="10"/><circle cx="136" cy="142" r="10"/><circle cx="172" cy="142" r="10"/></g>
+<g fill="#4A534F"><circle cx="82" cy="142" r="4"/><circle cx="136" cy="142" r="4"/><circle cx="172" cy="142" r="4"/></g></g>
+<path d="M60 110q16-20 30-13t26-10 28 12 16 11z" fill="url(#pa-load)"/>
+<g stroke="#5A4A2E" strokeWidth=".9" opacity=".6" fill="none"><path d="M70 104q10-8 18-4M100 94q10 2 16 8M126 96q8 2 14 8"/></g>
+<ellipse cx="104" cy="82" rx="46" ry="22" fill="url(#pa-puff)"/>
+<ellipse cx="146" cy="70" rx="26" ry="13" fill="url(#pa-puff)"/>
+<ellipse cx="62" cy="76" rx="22" ry="11" fill="url(#pa-puff)"/>
+<g><rect x="20" y="74" width="5" height="56" rx="2" fill="#6E6854"/><rect x="24" y="76" width="22" height="4" rx="2" fill="#6E6854"/>
+<circle cx="47" cy="78" r="3.5" fill="#8C8470"/><path d="M44 75l6 6M50 75l-6 6" stroke="#D9534F" strokeWidth="1.6"/></g>
+<rect width="320" height="180" fill="url(#pa-scan)"/>
+<rect width="320" height="180" fill="url(#pa-vig)"/>
+<g fill="none" stroke="#E8A23A" strokeWidth="2"><rect x="54" y="60" width="112" height="82" rx="3" strokeDasharray="7 4"/>
+<g strokeWidth="2.6">{[[54,60,1,1],[166,60,-1,1],[54,142,1,-1],[166,142,-1,-1]].map(([x,y,dx,dy],i)=><path key={"k"+i} d={"M"+(x+dx*11)+" "+y+"H"+x+"V"+(y+dy*11)}/>)}</g></g>
+<rect x="54" y="45" width="113" height="15" rx="3" fill="#E8A23A"/><text x="59" y="56" fontSize="9.5" fontWeight="700" fill="#1C1503" fontFamily="var(--f-body)">Load not covered &#183; 0.93</text>
+<g fill="none" stroke="#D9534F" strokeWidth="2"><rect x="10" y="66" width="44" height="70" rx="3" strokeDasharray="7 4"/></g>
+<rect x="10" y="151" width="76" height="15" rx="3" fill="#D9534F"/><text x="15" y="162" fontSize="9.5" fontWeight="700" fill="#fff" fontFamily="var(--f-body)">Misters off &#183; 0.88</text>
+<line x1="32" y1="136" x2="32" y2="151" stroke="#D9534F" strokeWidth="1.6" strokeDasharray="3 3"/>
+<rect x="0" y="0" width="320" height="26" fill="#000" opacity=".3"/>
+<g fontFamily="var(--f-body)" fill="#E6EDE9"><text x="10" y="17" fontSize="10" fontWeight="600">CAM-02 &#183; north yard</text><text x="286" y="17" fontSize="10" textAnchor="end">09:41:12</text></g>
+<circle cx="303" cy="13" r="4" fill="#D9534F"/>
+<g stroke="#E6EDE9" strokeWidth="1.5" opacity=".4" fill="none"><path d="M7 36V30h8"/><path d="M313 36V30h-8"/><path d="M7 168v6h8"/><path d="M313 168v6h-8"/></g>
+</g></svg>}
+
+const PhoneAdvisory=()=><div className="mx-auto w-full" style={{maxWidth:292}}>
+<div style={{border:"9px solid #10241B",borderRadius:36,background:"var(--card)",boxShadow:"var(--shadow)",overflow:"hidden"}}>
+<div style={{background:"#10241B",height:24,display:"grid",placeItems:"center"}}><span style={{width:58,height:5,borderRadius:3,background:"#36473F",display:"block"}}/></div>
+<div className="flex items-center gap-2.5 px-3.5 py-2.5 border-b line"><img src="assets/logo-mark.png" alt="" style={{height:22,width:"auto"}}/><div className="min-w-0"><div className="t-xs font-semibold truncate">PreventAir AI</div><div className="mut" style={{fontSize:11}}>Zalo Official Account</div></div></div>
+<div className="p-3 grid gap-2.5" style={{background:"var(--ground-2)"}}>
+<div className="rounded-2xl p-3" style={{background:"var(--card)",border:"1px solid var(--line)",borderTopLeftRadius:6}}>
+<div className="font-semibold" style={{fontSize:12.5,color:"var(--dust-ink)"}}>Dust risk tomorrow, 08:00 to 11:00</div>
+<p className="mut mt-1" style={{fontSize:12.5,lineHeight:1.5}}>Trung H&#242;a, block B. South-easterly wind 3 to 4 m/s toward the residential block.</p>
+<div className="mt-2 rounded-lg p-2.5" style={{background:"var(--leaf-soft)"}}><div className="font-semibold" style={{fontSize:12.5}}>Move the excavation to 14:00</div><div className="mut" style={{fontSize:11.5}}>Peak risk 71% to 11%, at no extra cost</div></div>
+<div className="mut mt-2" style={{fontSize:10.5}}>15:02</div></div>
+<div className="flex gap-2 justify-end"><span className="rounded-lg px-2.5 py-1.5" style={{fontSize:11.5,border:"1px solid var(--line)",color:"var(--ink-2)"}}>Not possible</span><span className="rounded-lg px-2.5 py-1.5 font-semibold" style={{fontSize:11.5,background:"var(--leaf)",color:"#0B2A1F"}}>Accept</span></div>
+<div className="justify-self-end rounded-2xl px-3 py-2" style={{background:"var(--forest)",color:"var(--on-forest)",fontSize:12.5,maxWidth:"82%",borderBottomRightRadius:6}}>&#272;&#227; duy&#7879;t, t&#7893; 2 chuy&#7875;n sang 14:00.<div className="on-f2 mt-1" style={{fontSize:10.5}}>15:06</div></div>
+</div></div></div>;
+
+function LayerArt({i}){const f1={fill:"currentColor",opacity:.16},f2={fill:"currentColor",opacity:.38};
+const st={fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round"};
+const art=[
+<g key="a">
+ <path d="M10 40h76" {...st} opacity=".35"/>
+ <path d="M22 40V16h52v24z" {...f1}/>
+ <path d="M22 40V16h52v24" {...st}/>
+ <path d="M22 22h52M34 16v24M48 16v24M62 16v24" {...st} strokeWidth="1.6"/>
+ <path d="M80 40V24h12v16z" {...f2}/>
+ <path d="M16 40v-6M92 40v-6" {...st} strokeWidth="1.6"/>
+</g>,
+<g key="b">
+ <path d="M8 40h80" {...st} opacity=".35"/>
+ <path d="M12 40q20-26 40 0z" {...f1}/>
+ <path d="M12 40q20-26 40 0" {...st}/>
+ <path d="M10 30q22-16 44 2l-3 5q-20-16-39-2z" {...f2}/>
+ <path d="M10 30q22-16 44 2" {...st}/>
+ <path d="M14 34l-3 6M50 36l4 5" {...st} strokeWidth="1.5"/>
+ <path d="M62 40V24h20v16z" {...f1}/><path d="M62 40V24h20v16" {...st}/>
+ <path d="M60 24h24" {...st} strokeWidth="1.6"/>
+</g>,
+<g key="c">
+ <path d="M8 40h80" {...st} opacity=".35"/>
+ <path d="M22 40V10" {...st}/><path d="M22 14h12" {...st}/>
+ <circle cx="36" cy="14" r="2.6" {...f2}/>
+ <path d="M38 16q12 4 14 14M38 20q9 5 10 14M38 24q6 5 6 12" {...st} strokeWidth="1.8" opacity=".8"/>
+ <path d="M58 40q10-10 22-10" {...st} strokeWidth="1.6" opacity=".55"/>
+ <g {...f2}><circle cx="50" cy="26" r="1.6"/><circle cx="58" cy="32" r="1.4"/><circle cx="46" cy="34" r="1.3"/></g>
+ <path d="M30 40h34" {...st} strokeWidth="3" opacity=".3"/>
+</g>,
+<g key="d">
+ <path d="M6 40h84" {...st} opacity=".35"/>
+ <path d="M10 40v-8h44v8z" {...f1}/><path d="M10 40v-8h44v8" {...st}/>
+ <path d="M12 36h40" {...st} strokeWidth="1.6" opacity=".6"/>
+ <circle cx="32" cy="22" r="12" {...f1}/><circle cx="32" cy="22" r="12" {...st}/><circle cx="32" cy="22" r="4" {...st} strokeWidth="1.6"/>
+ <path d="M58 32l12-10v18H58z" {...f2}/><path d="M58 32l12-10v18" {...st}/>
+ <g {...f2}><circle cx="20" cy="16" r="1.6"/><circle cx="46" cy="14" r="1.4"/><circle cx="52" cy="24" r="1.3"/></g>
+</g>,
+<g key="e">
+ <circle cx="28" cy="22" r="15" {...f1}/><circle cx="28" cy="22" r="15" {...st}/>
+ <path d="M28 13v9l7 5" {...st}/>
+ <path d="M50 40h38" {...st} opacity=".35"/>
+ <rect x="50" y="26" width="38" height="8" rx="2" {...f1}/>
+ <rect x="50" y="26" width="38" height="8" rx="2" {...st} strokeWidth="1.6"/>
+ <rect x="58" y="26" width="13" height="8" {...f2}/>
+ <path d="M64 22v-6" {...st} strokeWidth="1.6"/>
+</g>][i];
+return <svg viewBox="0 0 96 48" className="w-full h-auto" aria-hidden="true">{art}</svg>}
+
+function ControlLayers(){const L=[["L1","Enclosure","Hoarding and screening intact",1],["L2","Material cover","Stockpiles and truck loads covered",0],["L3","Spraying","Misters and water trucks running",0],["L4","Wheel wash","Vehicles cleaned before the gate",1],["L5","Timing","High-dust work kept out of risk windows",1]];
+return <div className="grid sm:grid-cols-3 lg:grid-cols-5 gap-4">{L.map(([k,t,d,ok],i)=><div key={k} className="panel p-5 flex flex-col lift" style={{borderTop:"3px solid "+(ok?"var(--pine)":"var(--dust)")}}>
+<div className="rounded-xl p-3" style={{background:ok?"var(--leaf-soft)":"var(--dust-soft)",color:ok?"var(--pine)":"var(--dust)"}}><LayerArt i={i}/></div>
+<div className="flex items-baseline gap-2 mt-4"><span className="t-xs font-bold mut">{k}</span><h4 className="font-semibold text-[17px]" style={{fontFamily:"var(--f-display)"}}>{t}</h4></div>
+<p className="t-sm mut mt-1.5 grow">{d}</p>
+<span className="chip mt-4 self-start" style={ok?{background:"var(--leaf-soft)",color:"var(--pine)"}:{background:"var(--dust-soft)",color:"var(--dust-ink)"}}>{ok?"Pass":"Flagged"}</span>
+</div>)}</div>}
+
+/* ===== The prevention loop ===== */
+const STEPS=[['Predict','trend','Estimate dust risk up to 18 hours ahead.'],['Prevent','shield','Reschedule work or strengthen controls.'],['Detect','eye','Watch sensors and cameras in real time.'],['Respond','bell','Send an evidence-based alert with a fix.'],['Learn','loop','Record outcomes to improve future advice.']];
+function Loop({dark}){return <ol className="grid gap-8 md:gap-4 md:grid-cols-5 relative">
+<span aria-hidden="true" className="hidden md:block absolute left-[10%] right-[10%] top-[26px] h-px" style={{background:dark?'var(--forest-line)':'var(--line)'}}/>
+{STEPS.map(([t,ic,d],i)=><li key={t} className="relative flex md:flex-col md:items-center md:text-center gap-4 md:gap-0">
+<div className="step-dot shrink-0 relative" style={dark?{background:'var(--forest)'}:{}}>{i+1}</div>
+<div className="md:mt-4"><h3 className="t-h3 flex md:justify-center items-center gap-2"><span style={dark?{color:'var(--leaf)'}:{color:'var(--pine)'}}><I n={ic} s={18}/></span>{t}</h3><p className={`t-sm mt-1 ${dark?'on-f2':'mut'}`}>{d}</p></div></li>)}</ol>}
+
+/* ===== Home ===== */
+function Home(){const[par,setPar]=useState(0);
+useScrollPos(()=>setPar(Math.min(80,(window.scrollY||0)*0.15)));
+return <>
+<section className="hero"><DustField/>
+<div className="absolute inset-0 pointer-events-none" style={{transform:'translate3d(0,'+par+'px,0)'}}><SiteSkyline/></div>
+<Wrap c="relative grid lg:grid-cols-[1fr_1.05fr] gap-10 lg:gap-14 items-center pt-14 pb-28 sm:pt-20 sm:pb-36">
+<div className="hero-stack">
+<h1 className="t-hero">Dust violations are preventable.<br/>We tell you 18 hours ahead.</h1>
+<p className="t-lead mt-6 measure" style={{color:'var(--on-forest)'}}>PreventAir AI turns the cameras and PM sensors already on your site into an early warning system, so you can move the work instead of paying the fine.</p>
+<div className="flex flex-wrap gap-3 mt-8"><A to="contact" className="btn btn-leaf">Book a pilot walkthrough</A><button type="button" className="btn btn-ghost" onClick={()=>scrollToId('how')}>See how it works</button></div>
+<ul className="flex flex-wrap gap-x-7 gap-y-2 mt-8 t-sm on-f2">{['No new cameras needed','Alerts arrive on Zalo','Data stays in Vietnam'].map(x=><li key={x} className="flex items-center gap-2"><span style={{color:'var(--leaf)'}}><I n="check" s={16}/></span>{x}</li>)}</ul>
+</div>
+<ProductFrame/></Wrap></section>
+
+<section style={{background:'var(--ground-2)',borderBottom:'1px solid var(--line)'}}><Wrap c="py-7 flex flex-wrap items-center justify-between gap-x-10 gap-y-4">
+<span className="t-sm font-semibold mut shrink-0">Built on FPT’s enterprise AI stack</span>
+<div className="flex flex-wrap items-center gap-x-7 gap-y-2 t-sm mut">{['FPT AI Factory','FPT Camera AI','FPT AI Vision','FPT AI Agents','FPT AI Chat + Zalo','FPT Cloud'].map(x=><span key={x} className="font-semibold" style={{fontFamily:'var(--f-display)'}}>{x}</span>)}</div>
+</Wrap></section>
+
+<section className="sec"><Wrap>
+<Head t="What one dust incident costs a contractor" pill="Existing evidence" pk="pill-evidence" s="Hanoi is tightening enforcement on construction dust, and the penalty is rarely the whole bill."/>
+<div className="stat-row grid md:grid-cols-3 mt-12 border-y line">
+{[[18,n=>'17–'+n+'%','of Hanoi’s air-pollution sources are linked to construction activities.'],[110,n=>''+n,'high dust-risk areas identified in Hanoi between September and December 2025.'],[68,n=>''+n,'large construction projects among those risk areas, inside the Ring Road 4 boundary.']].map(([v,f,t],i)=><Reveal key={t} d={i*120} c="py-8 md:px-8 first:md:pl-0"><div className="stat-num num"><Count to={v} fmt={f}/></div><p className="mut mt-4 max-w-[32ch]">{t}</p></Reveal>)}</div>
+<div className="mt-8 grid md:grid-cols-[auto_1fr] gap-x-8 gap-y-2 items-baseline rounded-2xl p-6 sm:p-7" style={{background:'var(--dust-soft)'}}>
+<div className="font-semibold num" style={{fontFamily:'var(--f-display)',fontSize:34,color:'var(--dust-ink)',letterSpacing:'-.02em'}}>VND 200 million</div>
+<p style={{color:'var(--ink)'}}>in administrative penalties after a major construction dust incident on Cảm Hội Street in April 2026.</p></div>
+<p className="t-sm mut mt-4">Source: <a href={SOURCE.url} target="_blank" rel="noopener" className="underline underline-offset-4 pine">{SOURCE.name}</a></p>
+<div className="grid sm:grid-cols-3 gap-x-8 gap-y-6 mt-12">{[['The fine','Administrative penalties under NĐ 16/2022 land on the contractor, not on the weather.'],['The stoppage','Work halts while the issue is resolved, and the schedule absorbs it.'],['The complaints','Residents and schools downwind escalate, and the project loses local goodwill.']].map(([t,d])=><div key={t} className="border-t-2 pt-5" style={{borderColor:'var(--dust)'}}><h3 className="t-h3">{t}</h3><p className="mut mt-1.5">{d}</p></div>)}</div>
+</Wrap></section>
+
+<section className="photo" aria-labelledby="dustfence">
+<img className="photo-img" src="assets/photo/site-hanoi.jpg" srcSet="assets/photo/site-hanoi-sm.jpg 864w, assets/photo/site-hanoi.jpg 1728w" sizes="100vw" decoding="async" alt="A Hanoi construction site at sunrise. Dust drifts from the excavation over the green hoarding toward a school and apartment blocks, while a monitoring camera and a particulate sensor sit on a pole in the foreground."/>
+<div className="photo-shade"/>
+<Wrap c="relative py-24 sm:py-32">
+<Reveal c="max-w-xl">
+<Pill k="pill-dark">What the forecast looks at</Pill>
+<h2 id="dustfence" className="t-h2 mt-4" style={{color:'#fff'}}>Dust does not stop at the fence</h2>
+<p className="t-lead mt-4" style={{color:'rgba(255,255,255,.88)'}}>Risk is not only how much dust a site makes. It is where the wind puts it, and who is standing there when it arrives.</p>
+<ul className="mt-7 grid gap-4">{[['activity','Wind direction and speed, hour by hour, for the next 48 hours.'],['build','What your crews are scheduled to do, and where on the site.'],['pin','Who is downwind: homes, schools, hospitals and busy roads.']].map(([ic,x])=><li key={x} className="flex gap-3"><span className="shrink-0 mt-0.5" style={{color:'var(--leaf)'}}><I n={ic} s={20}/></span><span style={{color:'rgba(255,255,255,.86)'}}>{x}</span></li>)}</ul>
+<div className="mt-8"><A to="solution" className="btn btn-leaf">See the exposure model</A></div>
+</Reveal></Wrap>
+<div className="hidden lg:block" aria-hidden="true">
+{[['78%','11%','Camera and PM sensor'],['56%','46%','Dust drifting downwind'],['75%','66%','Excavation and haulage']].map(([l,t,x])=><span key={x} className="hot" style={{left:l,top:t}}><span className="hot-dot"/><span className="hot-label">{x}</span></span>)}
+</div>
+</section>
+
+<SiteGallery/>
+
+<section className="sec"><Wrap>
+<Head t="The difference is knowing a day earlier" s="Most sites already have cameras, sensors and a spraying schedule. What they do not have is a warning."/>
+<div className="grid lg:grid-cols-2 gap-5 mt-12">
+<Reveal c="panel p-7"><h3 className="t-h3 mut flex items-center gap-2.5"><span className="w-7 h-7 rounded-full grid place-items-center shrink-0" style={{background:'var(--dust-soft)',color:'var(--dust-ink)'}}><I n="x" s={14}/></span>Without PreventAir</h3>
+<ul className="mt-5 grid gap-4">{['You learn about the dust when a resident complains or an inspector arrives.','CCTV has the footage, but someone has to find it and watch it.','Water spraying runs on a timer, wasting water on calm days and missing windy ones.','When several sites sit side by side, nobody can prove which one caused the spike.','Compliance records are assembled under pressure, after the fact.'].map(x=><li key={x} className="flex gap-3 mut"><span className="mt-2 w-1.5 h-1.5 rounded-full shrink-0" style={{background:'var(--dust)'}}/>{x}</li>)}</ul></Reveal>
+<Reveal d={130} c="panel-forest p-7"><h3 className="t-h3 flex items-center gap-2.5"><span className="w-7 h-7 rounded-full grid place-items-center shrink-0" style={{background:'var(--leaf)',color:'#0B2A1F'}}><I n="check" s={15}/></span>With PreventAir</h3>
+<ul className="mt-5 grid gap-4">{['An advisory lands on Zalo up to 18 hours before the risk window opens.','Cameras are checked automatically against the controls your permit requires.','Spraying and rescheduling follow forecast risk, not the clock.','An attribution score ranks your site against the others nearby, with the evidence.','Every incident files itself, with timestamps, photos and the response.'].map(x=><li key={x} className="flex gap-3 on-f2"><span className="mt-0.5 shrink-0" style={{color:'var(--leaf)'}}><I n="check" s={17}/></span>{x}</li>)}</ul>
+<div className="mt-7"><A to="solution" className="btn btn-leaf">See the full solution</A></div></Reveal></div>
+</Wrap></section>
+
+<section id="how" className="sec sec-tint"><Wrap>
+<Head t="How it works" pill="Product concept" pk="pill-concept" s="Three things change on your site. The rest runs in the background."/>
+<Reveal><ol className="grid md:grid-cols-3 gap-x-8 gap-y-10">{[['Connect what you already have','Your site cameras and a pair of fence-line PM sensors feed a small edge box in the site office. Nothing new goes up on the mast.'],['Get an advisory, not an alarm','Each afternoon PreventAir scores tomorrow against the weather, your work schedule and your dust controls, then sends one recommendation with its cost.'],['Keep the proof','If dust still escapes, the spike, the camera frame and your response are filed together as a record you can hand to an inspector.']].map(([t,d],i)=><li key={t}><div className="step-dot">{i+1}</div><h3 className="t-h3 mt-5">{t}</h3><p className="mut mt-2">{d}</p></li>)}</ol></Reveal>
+<Reveal d={120} c="mt-14 panel p-7 sm:p-9"><div className="grid lg:grid-cols-[1fr_auto] gap-8 items-center">
+<div><h3 className="t-h3">The loop that makes it better each month</h3><p className="mut mt-2 measure">Every advisory and every incident is recorded with what actually happened, so the next prediction is calibrated on your site rather than on an average one.</p></div>
+<A to="solution" className="btn btn-outline shrink-0">Read the architecture</A></div>
+<div className="mt-9"><Loop/></div></Reveal>
+</Wrap></section>
+
+<section className="sec"><Wrap c="grid lg:grid-cols-[1.1fr_1fr] gap-12 items-center">
+<div><Pill k="pill-concept">Where it lands</Pill>
+<h2 className="t-h2 mt-4">It arrives where your managers already are</h2>
+<p className="t-lead mut mt-4 measure">There is no new app to install and no portal to remember. The advisory comes through the Zalo account your team already uses, and the site manager answers in one tap.</p>
+<ul className="mt-7 grid gap-5">{[['bell','Zalo Official Account','Advisories, live alerts, and the reply that records whether the site accepted.'],['gauge','Contractor dashboard','The full picture for HSE and project managers, across sites.'],['file','Monthly compliance report','Every incident, response and outcome in one file, ready for an inspector.']].map(([ic,t,d])=><li key={t} className="flex gap-4"><span className="icon-tile shrink-0"><I n={ic} s={20}/></span><div><h3 className="font-semibold text-[17px]" style={{fontFamily:'var(--f-display)'}}>{t}</h3><p className="t-sm mut mt-1">{d}</p></div></li>)}</ul></div>
+<PhoneAdvisory/>
+</Wrap></section>
+
+<section className="sec sec-forest"><Wrap>
+<Head dark t="One site, one month, the arithmetic" pill="Illustrative pilot figures" s="These come from the pilot scenario we modelled, not from a deployed site. They are deliberately conservative: two events in a month, not four."/>
+<div className="grid lg:grid-cols-[1.3fr_1fr] gap-6 mt-12">
+<Reveal c="rounded-2xl p-7" style={{background:'var(--forest-2)'}}>
+<div className="grid sm:grid-cols-3 gap-6">{[['2','dust events, both fixed inside the deadline'],['0','violations recorded'],['22 / 22','days with no work stoppage']].map(([v,k])=><div key={k}><div className="num font-semibold text-[34px] leading-none" style={{fontFamily:'var(--f-display)',color:'var(--leaf)'}}>{v}</div><div className="t-sm on-f2 mt-2">{k}</div></div>)}</div>
+<div className="mt-8 pt-7 border-t grid gap-3" style={{borderColor:'var(--forest-line)'}}>
+<div className="flex justify-between items-baseline gap-4"><span className="on-f2">Fine exposure avoided, 2 events at the 17.5M midpoint</span><span className="num font-semibold text-[19px] shrink-0" style={{fontFamily:'var(--f-display)'}}>35.0M VND</span></div>
+<div className="flex justify-between items-baseline gap-4"><span className="on-f2">PreventAir fee for the site, one month</span><span className="num font-semibold text-[19px] shrink-0" style={{fontFamily:'var(--f-display)'}}>3.2M VND</span></div>
+</div></Reveal>
+<Reveal d={140} c="rounded-2xl p-7 grid place-items-center text-center" style={{background:'var(--leaf)',color:'#0B2A1F'}}>
+<div><div className="num font-bold leading-none" style={{fontFamily:'var(--f-display)',fontSize:64,letterSpacing:'-.04em'}}>≈11×</div><p className="font-semibold mt-3 text-[18px]">avoided exposure against the fee</p><p className="t-sm mt-2 opacity-80">And that counts only the penalty. It does not count the stopped hours or the complaints.</p></div></Reveal></div>
+</Wrap></section>
+
+<section className="sec"><Wrap c="grid lg:grid-cols-[1fr_1.4fr] gap-12">
+<div><h2 className="t-h2">Who uses it on site</h2><p className="mut mt-4">Primary market: mid-sized and large contractors running dust-intensive urban construction sites in Hanoi.</p><div className="mt-7"><A to="contact" className="btn btn-pine">Book a pilot walkthrough</A></div></div>
+<ul className="divide-y line border-y">{[['build','Site manager','Gets tomorrow’s risk window the afternoon before, with one recommended change to the plan.'],['shield','HSE and environmental manager','Gets the camera checks, the incident file and the monthly compliance score without chasing anyone.'],['clock','Project manager','Sees the schedule protected from stoppages, and the exposure the site is carrying this month.']].map(([ic,t,d])=><li key={t} className="flex gap-5 py-6 lift"><span className="icon-tile shrink-0"><I n={ic} s={22}/></span><div><h3 className="t-h3">{t}</h3><p className="mut mt-1">{d}</p></div></li>)}</ul>
+</Wrap></section>
+
+<section className="sec sec-tint"><Wrap c="grid lg:grid-cols-[1fr_1.6fr] gap-12">
+<div><h2 className="t-h2">Questions contractors ask first</h2><p className="mut mt-4">If yours is not here, write to us and we will answer it directly.</p><div className="mt-6"><A to="contact" className="btn btn-outline">Ask us something</A></div></div>
+<div>{[
+['Do we have to install new cameras?','No. PreventAir reads the cameras you already have, at one frame per second. The only hardware added is a small edge box in the site office and a pair of PM10 sensors on the fence line, one upwind and one downwind.'],
+['Does this report us to the authorities?','No. PreventAir has no tool that can file anything with an authority, and that limit is built into the system rather than left to policy. The regulator console is read-only, and it shows a site only once that site opts in.'],
+['What happens if the prediction is wrong?','The advisory gives you the reason behind it and you decide. Every missed or false warning is logged and fed back into the model, and we audit 100 sampled decisions per site every week so you can see the precision rather than take our word for it.'],
+['Who decides what to do on site, the AI or my manager?','Your manager, always. PreventAir recommends and records. It never changes a schedule, starts equipment or closes an incident on its own.'],
+['Where does our site footage go?','Faces and number plates are blurred on the edge box before anything leaves the site. Only events are uploaded, roughly 1.5 MB each, and evidence expires after 30 days. Everything stays on FPT infrastructure inside Vietnam.'],
+['How long does a pilot take to set up?','Plan on a few days per site to mount the sensors, connect the cameras and agree your dust-control checklist. Advisories start once there is enough local weather and activity data to calibrate against.'],
+['What does it cost?','The target price is 3.2 million VND per site per month, inside a 2.5 to 4.0 million band. Pilot sites help us calibrate the model, so their terms are agreed case by case.']
+].map(([q,a])=><details key={q} className="faq"><summary>{q}</summary><p>{a}</p></details>)}</div>
+</Wrap></section>
+
+<ClosingCTA t="Build Hanoi without making its air pay the price." s="We are looking for Hanoi contractors to run the first pilot sites. A walkthrough takes about 30 minutes." b={<><A to="contact" className="btn btn-leaf">Book a pilot walkthrough</A><A to="solution" className="btn btn-ghost">Read the solution first</A></>}/></>}
+
+function SiteGallery(){if(!SITES.length)return null;
+return <section className="sec" style={{paddingTop:0}}><Wrap><Head t="On the ground in Hanoi" s="Construction sites where dust risk builds up every day."/>
+<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-10">{SITES.map(p=><figure key={p.src} className="panel overflow-hidden"><img src={p.src} alt={p.caption||'Construction site in Hanoi'} loading="lazy" className="w-full aspect-[4/3] object-cover"/>{p.caption&&<figcaption className="p-4 t-sm mut">{p.caption}</figcaption>}</figure>)}</div></Wrap></section>}
+
+const ClosingCTA=({t,s,b})=><section className="sec-forest relative overflow-hidden">
+<img src="assets/logo-mark.png" alt="" aria-hidden="true" className="absolute -right-10 -bottom-16 w-[340px] max-w-none opacity-[.09] pointer-events-none select-none"/>
+<Wrap c="relative py-20 sm:py-24"><h2 className="t-h1 max-w-3xl">{t}</h2><p className="t-lead on-f2 mt-5 max-w-2xl">{s}</p><div className="mt-9 flex flex-wrap gap-3">{b}</div></Wrap></section>;
+
+const PageHero=({t,s,pill,children})=><section className="hero"><Wrap c="relative pt-14 pb-14 sm:pt-20 sm:pb-20">{pill&&<Pill k="pill-dark">{pill}</Pill>}<h1 className="t-h1 mt-5 max-w-4xl">{t}</h1><p className="t-lead on-f2 mt-5 max-w-2xl">{s}</p>{children}</Wrap></section>;
+
+/* ===== About ===== */
+function About(){return <>
+<section className="sec" style={{paddingBottom:56}}><Wrap c="grid lg:grid-cols-[1.2fr_1fr] gap-12 items-center">
+<div><Pill k="pill-concept">About PreventAir AI</Pill><h1 className="t-h1 mt-5">Building smarter. Breathing better.</h1><p className="t-lead mut mt-5 measure">PreventAir AI connects environmental responsibility, construction operations and artificial intelligence to help Hanoi grow more sustainably.</p></div>
+<div className="rounded-3xl p-8 sm:p-10 grid place-items-center" style={{background:'#FFFFFF',border:'1px solid var(--line)'}}><img src="assets/logo-full.png" alt="PreventAir logo: AI for a safer construction site" className="w-full max-w-[360px] h-auto"/></div>
+</Wrap></section>
+
+<section className="pb-20"><Wrap c="grid md:grid-cols-2 gap-5">
+<div className="panel-forest p-8 sm:p-10"><h2 className="t-h3" style={{color:'var(--leaf)'}}>Mission</h2><p className="mt-3 text-[22px] leading-snug" style={{fontFamily:'var(--f-display)'}}>To help construction companies prevent and manage dust pollution through predictive, actionable and transparent environmental intelligence.</p></div>
+<div className="rounded-[20px] p-8 sm:p-10" style={{background:'var(--leaf-soft)'}}><h2 className="t-h3 pine">Vision</h2><p className="mt-3 text-[22px] leading-snug" style={{fontFamily:'var(--f-display)'}}>A cleaner and smarter Hanoi, where construction progresses responsibly while minimising its impact on surrounding communities.</p></div>
+</Wrap></section>
+
+<section className="sec sec-tint"><Wrap c="grid lg:grid-cols-[1fr_1.6fr] gap-12">
+<h2 className="t-h2">Why we built PreventAir AI</h2>
+<div className="space-y-5 t-lead mut measure">
+<p>PreventAir AI began as a response to the growing challenge of construction-related dust pollution in Hanoi.</p>
+<p>As business students, we approached the issue from a business and solution-design perspective: we identified the environmental challenge, analysed contractors’ needs and designed a framework showing how technology could address them.</p>
+<p>The project explores how FPT’s existing AI and cloud technologies can be combined with a pollution-specific intelligence layer built for construction sites.</p>
+<p className="t-sm rounded-xl p-4" style={{background:'var(--dust-soft)',color:'var(--dust-ink)'}}>PreventAir AI is a university project concept. It is not yet commercially deployed, and the figures shown across this site are modelled pilot scenarios rather than field results.</p></div>
+</Wrap></section>
+
+<section className="sec"><Wrap>
+<Head t="Meet the team" s="Six students working across technology, business, research and operations to build a smarter approach to construction-site dust management in Hanoi."/>
+<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-12 mt-12">{TEAM.map(([n,r,b,ph])=><article key={n}>
+<div className="aspect-[4/5] overflow-hidden rounded-2xl" style={{background:'var(--ground-2)'}}><img src={ph} alt={`Portrait of ${n}`} loading="lazy" className="w-full h-full object-cover"/></div>
+<h3 className="t-h3 mt-5">{n}</h3><p className="t-sm font-semibold pine mt-1">{r}</p><p className="t-sm mut mt-2">{b}</p></article>)}</div>
+</Wrap></section>
+
+<section className="sec sec-forest"><Wrap>
+<Head dark t="Our approach"/>
+<div className="grid md:grid-cols-3 gap-10 mt-12">{[['build','Business first','Start from contractor pain points, compliance risks and operational realities.'],['layers','AI with purpose','Apply AI only where it improves prediction, monitoring and decision support.'],['shield','Responsible deployment','Keep people and regulators in charge of legally significant decisions.']].map(([ic,t,d])=><div key={t} className="border-t pt-6" style={{borderColor:'var(--forest-line)'}}><span style={{color:'var(--leaf)'}}><I n={ic} s={26}/></span><h3 className="t-h3 mt-4">{t}</h3><p className="on-f2 mt-2">{d}</p></div>)}</div>
+</Wrap></section>
+
+<ClosingCTA t="Want to see it on one of your sites?" s="We are looking for Hanoi contractors to run the first pilot sites." b={<A to="contact" className="btn btn-leaf">Book a pilot walkthrough</A>}/></>}
+
+/* ===== Solution ===== */
+const HRS=[18,22,30,44,62,80,92,88,70,50,36,28];
+const SUBNAV=[['problem','The problem'],['exposure','Who is downwind'],['layers','Two layers'],['dashboard','Dashboard'],['features','Features'],['technology','Technology'],['pilot','What a pilot includes'],['impact','Impact'],['roadmap','Roadmap']];
+function Solution(){
+const[act,setAct]=useState('problem');
+useEffect(()=>{let o;try{o=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)setAct(e.target.id)})},{rootMargin:'-28% 0px -62% 0px'});SUBNAV.forEach(([id])=>{const el=document.getElementById(id);if(el)o.observe(el)})}catch(e){}
+return()=>{o&&o.disconnect()}},[]);
+const feats=[['gauge','Predictive dust-risk scoring','Forecast high-risk periods before construction activities begin.'],['camera','AI camera compliance checks','Check visible controls such as coverings, enclosures, watering and site-entry conditions.'],['activity','PM2.5 and PM10 monitoring','Identify abnormal particulate-matter events in real time.'],['pin','Dust-source attribution','Rank nearby sites most likely to be causing an anomaly, using environmental and contextual signals.'],['bell','Evidence-based alerts','Combine sensor, camera and contextual evidence before alerting managers.'],['shield','Action recommendations','Suggest site-specific preventive and corrective measures.'],['file','Digital compliance records','Record incidents, responses and outcomes automatically.'],['loop','Continuous learning','Use verified outcomes to improve future predictions and recommendations.']];
+const mets=[['Prediction accuracy','Predicted risk compared with actual dust events.'],['Intervention effectiveness','PM levels before and after corrective actions.'],['Response time','Time from alert to corrective action.'],['Alert quality','False alarms and missed detections.'],['Incident trends','Frequency, severity and recurring problem locations.'],['PreventAir compliance score','Site-level trend based on issue frequency, severity, duration, response and repeat violations.'],['Adoption','Pilot sites and contractors that renew or expand.']];
+return <>
+<PageHero pill="Product concept" t="AI that stops dust before it becomes a violation" s="PreventAir AI brings construction schedules, weather, cameras and PM2.5 and PM10 sensors into one predictive environmental intelligence platform."><div className="mt-8 flex flex-wrap gap-3"><button type="button" className="btn btn-leaf" onClick={()=>scrollToId('dashboard')}>View the dashboard</button><button type="button" className="btn btn-ghost" onClick={()=>scrollToId('technology')}>See the architecture</button></div></PageHero>
+<nav className="subnav" aria-label="On this page"><Wrap><div className="subnav-in">{SUBNAV.map(([id,l])=><button key={id} type="button" className={act===id?'on':''} onClick={()=>scrollToId(id)}>{l}</button>)}</div></Wrap></nav>
+
+<section id="problem" className="sec"><Wrap>
+<Head t="Construction monitoring is still mostly reactive" pill="Existing evidence" pk="pill-evidence"/>
+<div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-10 mt-12">{[['camera','CCTV','Records footage, but people still need to watch it.'],['activity','Sensors','Measure PM2.5 and PM10, but do not explain why a spike happened.'],['eye','Manual inspections','Cannot cover every part of a site around the clock.'],['droplet','Fixed-schedule spraying','Wastes water, labour and time while still missing high-risk periods.']].map(([ic,t,d])=><div key={t} className="border-t-2 pt-5" style={{borderColor:'var(--dust)'}}><span style={{color:'var(--dust)'}}><I n={ic} s={24}/></span><h3 className="t-h3 mt-3">{t}</h3><p className="mut mt-1.5">{d}</p></div>)}</div>
+<p className="mt-16 max-w-3xl" style={{fontFamily:'var(--f-display)',fontSize:'clamp(23px,2.7vw,31px)',lineHeight:1.3,fontWeight:500}}>The missing capability is not more monitoring. It is knowing when, where and why a violation is likely, early enough to prevent it.</p>
+</Wrap></section>
+
+<section id="exposure" className="sec sec-tint"><Wrap c="grid lg:grid-cols-[1fr_1.1fr] gap-12 items-center">
+<Reveal>
+<Pill k="pill-concept">Exposure model</Pill>
+<h2 className="t-h2 mt-4">Who is downwind decides the score</h2>
+<p className="t-lead mut mt-4 measure">The same cloud of dust is a nuisance over an empty lot and a violation over a primary school. PreventAir scores the plume against what it actually crosses.</p>
+<ul className="mt-7 grid gap-4">{[['activity','Wind direction and speed, hour by hour, for the next 48 hours.'],['build','What your crews are scheduled to do, and where on the site.'],['pin','Who is downwind: homes, schools, hospitals and busy roads.']].map(([ic,x])=><li key={x} className="flex gap-3"><span className="pine shrink-0 mt-0.5"><I n={ic} s={20}/></span><span className="mut">{x}</span></li>)}</ul>
+</Reveal>
+<Reveal d={140} c="min-w-0"><figure className="min-w-0"><PlumeMap/>
+<div className="flex flex-wrap gap-x-5 gap-y-2 mt-3 t-xs mut"><span className="flex items-center gap-1.5"><i className="inline-block w-2.5 h-2.5 rounded-sm" style={{background:'var(--pine)'}}/>PM sensor pair, upwind and downwind</span><span className="flex items-center gap-1.5"><i className="inline-block w-2.5 h-2.5 rounded-full" style={{background:'var(--pine)'}}/>Site camera</span><span className="flex items-center gap-1.5"><i className="inline-block w-4 h-2.5 rounded-sm" style={{background:'var(--dust)',opacity:.4}}/>Modelled dust plume</span></div>
+<figcaption className="t-xs mut mt-2">Illustrative site map for Trung Hòa, HN-CG-0412. Distances and the downwind population come from the modelled pilot scenario.</figcaption></figure></Reveal>
+</Wrap></section>
+
+<section id="layers" className="sec sec-forest"><Wrap>
+<Head dark t="Two connected intelligence layers" pill="Product concept"/>
+<div className="grid lg:grid-cols-2 gap-6 mt-12">
+<div className="rounded-2xl p-6 sm:p-7" style={{background:'var(--forest-2)'}}>
+<div className="flex flex-wrap justify-between items-start gap-3"><h3 className="t-h3">Layer 1: Prevention</h3><Pill k="pill-dark">Up to about 18 hours ahead</Pill></div>
+<p className="on-f2 mt-3">Combines planned activities, forecast weather, site conditions and existing dust controls to estimate when risk will be highest.</p>
+<div className="mt-6 rounded-xl p-4" style={{background:'var(--forest)'}}><div className="flex justify-between t-xs on-f2 mb-3"><span>Hourly risk forecast</span><span>Illustrative</span></div>
+<div className="flex items-end gap-1.5 h-28" role="img" aria-label="Illustrative hourly risk bars rising to a peak mid-forecast">{HRS.map((v,i)=><div key={i} className="flex-1 rounded-t" style={{height:v+'%',background:v>75?'#E06A55':v>50?'var(--dust-on-forest)':'var(--leaf)'}}/>)}</div>
+<div className="flex justify-between t-xs on-f2 mt-2"><span>Now</span><span>+9h</span><span>+18h</span></div></div>
+<h4 className="font-semibold mt-6" style={{fontFamily:'var(--f-display)'}}>Possible recommendations</h4>
+<ul className="mt-3 grid sm:grid-cols-2 gap-x-4 gap-y-2 t-sm">{['Reschedule a high-risk activity','Increase watering','Cover stockpiles','Strengthen site enclosure','Improve truck covering','Add gate and wheel-wash controls'].map(x=><li key={x} className="flex gap-2"><span style={{color:'var(--leaf)'}}><I n="check" s={16}/></span>{x}</li>)}</ul></div>
+<div className="rounded-2xl p-6 sm:p-7" style={{background:'var(--forest-2)'}}>
+<div className="flex flex-wrap justify-between items-start gap-3"><h3 className="t-h3">Layer 2: Detection</h3><Pill k="pill-dark">Real-time monitoring</Pill></div>
+<p className="on-f2 mt-3">If preventive controls fail, PM2.5 and PM10 sensors flag unusual dust levels while cameras check whether required controls are in place.</p>
+<div className="mt-6"><CameraFrame/></div>
+<div className="mt-3 rounded-xl p-3" style={{background:'var(--forest)'}}><div className="flex justify-between t-xs on-f2"><span>Downwind PM10</span><span>4.2σ</span></div><svg viewBox="0 0 300 44" className="mt-1 w-full h-11" aria-hidden="true"><line x1="0" y1="30" x2="300" y2="30" stroke="var(--forest-line)" strokeDasharray="3 3"/><polyline points="0,38 46,36 92,37 130,30 160,6 190,26 230,35 300,36" fill="none" stroke="var(--dust-on-forest)" strokeWidth="2.5" strokeLinejoin="round"/></svg></div>
+<div className="mt-3 rounded-xl p-4" style={{background:'var(--forest)',border:'1px solid var(--forest-line)'}}><div className="flex justify-between items-center gap-3"><span className="t-sm font-semibold flex gap-2 items-center"><I n="bell" s={16}/>Evidence-based alert</span><span className="chip chip-crit">Critical</span></div><p className="t-sm on-f2 mt-1.5">Sensor and camera signals agree. Recommended response: cover the load and switch the gate misters on.</p></div>
+<p className="on-f2 t-sm mt-5">When several signals point to the same problem, the manager gets an alert on the dashboard and on Zalo, with a recommended response.</p></div></div>
+<Reveal c="mt-12"><Loop dark/></Reveal>
+</Wrap></section>
+
+<section className="sec sec-tint"><Wrap>
+<Head t="The five control layers we check" pill="Product concept" pk="pill-concept" s="Every camera pass scores the same five layers against the dust controls in your permit, so an alert always names the one that slipped. The states below are from the modelled incident."/>
+<Reveal c="mt-12"><ControlLayers/></Reveal>
+</Wrap></section>
+
+<section id="dashboard" className="sec"><Wrap><Head t="Contractor dashboard" pill="Illustrative pilot data" pk="pill-concept" s="One site, one advisory, one incident, one month. All figures are illustrative pilot data, not real field results."/><Reveal c="mt-12"><Dashboard/></Reveal></Wrap></section>
+
+<section id="features" className="sec sec-tint"><Wrap><Head t="Key features"/>
+<div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-10 mt-12">{feats.map(([ic,t,d])=><div key={t}><span className="icon-tile"><I n={ic} s={22}/></span><h3 className="font-semibold mt-4 text-[18px] leading-snug" style={{fontFamily:'var(--f-display)'}}>{t}</h3><p className="t-sm mut mt-1.5">{d}</p></div>)}</div></Wrap></section>
+
+<section id="technology" className="sec"><Wrap>
+<Head t="Built on an enterprise AI ecosystem" s="FPT provides the technology backbone. PreventAir AI develops the pollution-specific intelligence layer."/>
+<div className="grid md:grid-cols-2 gap-6 mt-12">
+<div className="panel p-7"><h3 className="t-h3">FPT technology backbone</h3><ul className="mt-5 grid gap-3">{['FPT Camera AI','FPT AI Vision / VLM','FPT AI Read','FPT AI Agents','FPT AI Chat with Zalo','FPT AI Factory','FPT Cloud'].map(x=><li key={x} className="flex gap-3 items-center"><span className="mut"><I n="layers" s={18}/></span>{x}</li>)}</ul></div>
+<div className="rounded-2xl p-7" style={{background:'var(--leaf-soft)',border:'1px solid color-mix(in srgb,var(--pine) 30%,transparent)'}}><h3 className="t-h3 pine">PreventAir intelligence layer</h3><ul className="mt-5 grid gap-3">{['Dust-risk prediction model','Construction-specific computer-vision compliance model','Dust-source attribution engine','Compliance scoring engine','Alert and recommendation engine','Regulatory knowledge base'].map(x=><li key={x} className="flex gap-3 items-center"><span className="pine"><I n="check" s={18}/></span>{x}</li>)}</ul></div></div>
+<div className="mt-20"><h3 className="t-h2">System architecture</h3><p className="t-lead mut mt-3 measure">From sensors and cameras across the site to a verified outcome in six steps.</p><Reveal c="mt-10"><Architecture/></Reveal></div>
+</Wrap></section>
+
+<section id="pilot" className="sec sec-tint"><Wrap>
+<Head t="What a pilot site includes" pill="Planned pilot" pk="pill-concept" s="Scoped so a contractor can try one site without committing the whole portfolio."/>
+<div className="grid lg:grid-cols-[1.4fr_1fr] gap-6 mt-12">
+<div className="panel p-7 sm:p-8 lift"><ul className="grid sm:grid-cols-2 gap-x-8 gap-y-5">{[['camera','Your existing cameras connected, up to three per site'],['activity','A fence-line PM10 pair, one upwind and one downwind'],['layers','An edge box in the site office, with 72 hours of local buffer'],['bell','Afternoon advisories and live alerts on Zalo'],['gauge','The contractor dashboard for your managers'],['file','A monthly compliance report with every incident filed']].map(([ic,t])=><li key={t} className="flex gap-3"><span className="pine shrink-0 mt-0.5"><I n={ic} s={20}/></span><span>{t}</span></li>)}</ul></div>
+<div className="panel-forest p-7 sm:p-8 flex flex-col justify-between gap-6">
+<div><div className="t-sm on-f2">Target price per site</div><div className="num font-bold mt-2" style={{fontFamily:'var(--f-display)',fontSize:40,letterSpacing:'-.03em'}}>3.2M <span className="text-[20px] font-medium on-f2">VND / month</span></div><p className="t-sm on-f2 mt-3">Inside a 2.5 to 4.0 million band. Pilot sites help calibrate the model, so their terms are agreed case by case.</p></div>
+<A to="contact" className="btn btn-leaf">Book a pilot walkthrough</A></div></div>
+</Wrap></section>
+
+<section id="impact" className="sec sec-forest"><Wrap>
+<Head dark t="Designed for measurable ESG impact" pill="Expected outcomes"/>
+<div className="grid md:grid-cols-3 gap-10 mt-12">{[['Environmental','var(--leaf)',['Reduce dust emissions at the source','Prevent or mitigate high-risk events earlier','Target dust-control measures better','Support Hanoi’s air-quality objectives']],['Social','var(--dust-on-forest)',['Reduce dust exposure for nearby residents','Protect students, commuters and workers','Reduce community complaints and friction','Build trust between projects and neighbours']],['Governance','var(--on-forest)',['Timestamp incidents and corrective actions','Create transparent compliance records','Link alerts to regulatory requirements','Support risk-based inspection while authorities keep enforcement']]].map(([t,c,l])=><div key={t} className="border-t-2 pt-6" style={{borderColor:c}}><h3 className="t-h3" style={{color:c}}>{t}</h3><ul className="mt-4 space-y-2.5">{l.map(x=><li key={x} className="flex gap-2.5 on-f2"><span className="mt-1 shrink-0" style={{color:c}}><I n="check" s={16}/></span>{x}</li>)}</ul></div>)}</div>
+</Wrap></section>
+
+<section className="sec"><Wrap>
+<Head t="How we will measure success" pill="Planned measurement" s="These are the metrics a pilot will track. None of them are achieved results yet."/>
+<div className="mt-10 overflow-x-auto"><table className="w-full text-left min-w-[560px]"><thead><tr className="t-sm mut border-b line"><th className="py-3 pr-6 font-semibold">Metric</th><th className="py-3 pr-6 font-semibold">What we compare</th><th className="py-3 font-semibold">Status</th></tr></thead>
+<tbody>{mets.map(([t,d])=><tr key={t} className="border-b line align-top"><td className="py-4 pr-6 font-semibold" style={{fontFamily:'var(--f-display)'}}>{t}</td><td className="py-4 pr-6 mut">{d}</td><td className="py-4"><span className="chip" style={{background:'var(--ground-2)',color:'var(--ink-2)'}}>To be measured</span></td></tr>)}</tbody></table></div>
+</Wrap></section>
+
+<section id="roadmap" className="sec sec-tint"><Wrap>
+<Head t="Implementation roadmap" pill="Planned pilot" pk="pill-concept"/>
+<ol className="grid md:grid-cols-3 gap-6 mt-12">{[['MVP',['Evidence-based dust-risk score','PM sensor monitoring','Camera verification','Dashboard and Zalo alerts','Incident records']],['Pilot',['Deploy at about 20 pilot sites','Compare predictions with actual events','Calibrate weights and thresholds','Build a labelled Hanoi construction dataset']],['Scale',['Move toward machine-learning prediction','Expand across contractors and sites','Scale production infrastructure on FPT Cloud']]].map(([t,l],i)=><li key={t} className="panel p-7 lift"><div className="flex items-center gap-3"><span className="step-dot" style={{width:40,height:40,fontSize:15}}>{i+1}</span><h3 className="t-h3">Stage {i+1}: {t}</h3></div><ul className="mt-5 space-y-2.5">{l.map(x=><li key={x} className="flex gap-2.5 mut"><span className="pine mt-1 shrink-0"><I n="check" s={16}/></span>{x}</li>)}</ul></li>)}</ol>
+<div className="mt-6 rounded-2xl p-6" style={{border:'1.5px dashed var(--line)'}}><h3 className="t-h3">Later: phase 2</h3><p className="mut mt-1">City-level dashboard for government, a public transparency page, and further FPT ecosystem capabilities where appropriate.</p></div>
+</Wrap></section>
+
+<ClosingCTA t="Prevent the risk before it leaves the site." s="Turn the monitoring you already pay for into advice your managers can act on." b={<><A to="contact" className="btn btn-leaf">Book a pilot walkthrough</A><A to="about" className="btn btn-ghost">Meet the team</A></>}/></>}
+
+/* ===== Dashboard ===== */
+function Ring({v}){const C=2*Math.PI*68;return <div className="relative w-40 h-40 mx-auto"><svg viewBox="0 0 168 168" className="w-full h-full -rotate-90" aria-hidden="true"><circle cx="84" cy="84" r="68" fill="none" stroke="var(--forest-line)" strokeWidth="13"/><circle cx="84" cy="84" r="68" fill="none" stroke="var(--leaf)" strokeWidth="13" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C*(1-v/100)}/></svg><div className="absolute inset-0 grid place-items-center text-center"><div><div className="num" style={{fontFamily:'var(--f-display)',fontWeight:600,fontSize:48,lineHeight:1}}>{v}</div><div className="t-xs on-f2 mt-1">out of 100</div></div></div></div>}
+function Dashboard(){
+const lay=[['L1 Enclosure','Pass',1],['L2 Material cover','Load uncovered',0],['L3 Spraying','Misters off',0],['L4 Wheel wash','Pass',1],['L5 Timing','Pass',1]];
+const inc=[['24 s','spike to detection'],['0.71','attribution posterior'],['6 min 04 s','detect to notify'],['11 min','time to remediation, 30 min deadline'],['−94%','excess PM10 after fix'],['NĐ 16/2022, Đ.16','applicable clause'],['15–20M VND','exposure band for this clause'],['0.71 vs 0.19','against next-ranked site']];
+const mon=[['2','events, both remediated'],['0','recorded violations'],['35.0M VND','fine exposure avoided'],['22 / 22','days without a work stoppage'],['3.2M VND','PreventAir fee this month'],['≈11×','avoided exposure vs fee']];
+const box={background:'var(--forest-2)',borderRadius:14};
+return <div className="panel-forest p-4 sm:p-7" style={{boxShadow:'var(--shadow)'}}>
+<div className="flex flex-wrap items-end justify-between gap-4 pb-5 border-b" style={{borderColor:'var(--forest-line)'}}><div><div className="t-xs on-f2">Site operations, HN-CG-0412, Cầu Giấy, Hà Nội</div><div className="t-h2 mt-1" style={{fontSize:30}}>Trung Hòa</div><div className="flex flex-wrap gap-1.5 mt-3">{['CAM-01 gate','CAM-02 north yard','CAM-03 perimeter','Manager: Anh Tuấn'].map(x=><span key={x} className="t-xs px-2.5 py-1 rounded-full on-f2" style={{border:'1px solid var(--forest-line)'}}>{x}</span>)}</div></div><div className="t-xs flex items-center gap-2" style={{color:'var(--leaf)'}}><span className="w-2 h-2 rounded-full live-dot" style={{background:'var(--leaf)'}}/>Live, last sync 14 sec ago</div></div>
+
+<div className="mt-5 p-5 flex flex-wrap items-center justify-between gap-4" style={{...box,border:'1px solid color-mix(in srgb,var(--leaf) 45%,transparent)'}}><div className="max-w-2xl"><div className="t-xs font-semibold" style={{color:'var(--leaf)'}}>Advisor message, sent yesterday 15:02, 18 hours ahead</div><p className="mt-2">Risk window tomorrow 08:00 to 11:00: south-easterly wind 3–4 m/s toward the Trung Hòa residential block (≈1,120 residents, Kim Liên primary school downwind). Accepted option: move the block B excavation to 14:00, at no cost.</p></div><div className="text-right"><div className="num" style={{fontFamily:'var(--f-display)',fontWeight:600,fontSize:32}}><span className="line-through mr-2" style={{color:'var(--dust-on-forest)',fontSize:20}}>71%</span><span style={{color:'var(--leaf)'}}>11%</span></div><div className="t-xs on-f2 mt-1">peak risk, before and after</div></div></div>
+
+<div className="grid lg:grid-cols-[250px_1fr] gap-4 mt-4">
+<div className="p-5 text-center" style={box}><div className="t-sm font-semibold mb-4">Compliance score, 30 days</div><Ring v={88}/><p className="t-sm on-f2 mt-4">Observation coverage 94%. L3 active spraying is the drag on this month’s score.</p></div>
+<div className="p-5 min-w-0" style={box}><div className="t-sm font-semibold">Fence-line PM10, last incident</div>
+<div className="flex flex-wrap gap-4 t-xs on-f2 mt-3"><span className="flex items-center gap-1.5"><i className="inline-block w-3.5 h-[3px] rounded" style={{background:'var(--dust-on-forest)'}}/>Downwind</span><span className="flex items-center gap-1.5"><i className="inline-block w-3.5 h-[3px] rounded" style={{background:'#8FB6E6'}}/>Upwind</span><span className="flex items-center gap-1.5"><i className="inline-block w-3.5 border-t border-dashed" style={{borderColor:'var(--on-forest-2)'}}/>2σ threshold</span></div>
+<svg viewBox="0 0 600 140" preserveAspectRatio="none" className="w-full h-36 mt-2" role="img" aria-label="Downwind PM10 spikes to 4.2 sigma while upwind stays flat"><line x1="0" y1="95" x2="600" y2="95" stroke="var(--on-forest-2)" strokeOpacity=".6" strokeDasharray="5 4"/><rect x="245" y="18" width="110" height="98" fill="var(--dust-on-forest)" opacity=".14" rx="4"/><polyline points="0,110 80,108 160,105 220,100 260,40 300,22 340,30 380,55 460,78 520,88 600,90" fill="none" stroke="var(--dust-on-forest)" strokeWidth="2.5" vectorEffect="non-scaling-stroke"/><polyline points="0,118 80,117 160,116 220,115 260,112 300,110 340,109 380,110 460,113 520,116 600,117" fill="none" stroke="#8FB6E6" strokeWidth="2" vectorEffect="non-scaling-stroke"/></svg>
+<div className="t-xs on-f2 -mt-1">Spike at 4.2σ, shaded</div>
+<div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-4">{lay.map(([n,st,ok])=><div key={n} className="rounded-lg px-3 py-2.5" style={{background:'var(--forest)',borderLeft:`3px solid ${ok?'var(--leaf)':'var(--dust-on-forest)'}`}}><div className="t-xs font-semibold">{n}</div><div className="t-xs mt-1" style={{color:ok?'var(--leaf)':'var(--dust-on-forest)'}}>{st}</div></div>)}</div></div></div>
+
+<div className="p-5 mt-4" style={box}><div className="t-sm font-semibold">Incident replay, detected today at 09:41</div>
+<div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-5 mt-4">{inc.map(([v,k])=><div key={k}><div className="num font-semibold text-[19px]" style={{fontFamily:'var(--f-display)'}}>{v}</div><div className="t-xs on-f2 mt-1">{k}</div></div>)}</div>
+<span className="inline-flex items-center gap-2 mt-5 t-xs font-semibold rounded-full px-3 py-1.5" style={{color:'var(--leaf)',border:'1px solid color-mix(in srgb,var(--leaf) 45%,transparent)'}}><I n="check" s={14}/>Remediated inside the deadline, no violation recorded</span></div>
+
+<div className="p-5 mt-4" style={box}><div className="t-sm font-semibold">August 2026, month to date</div>
+<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mt-4">{mon.map(([v,k])=><div key={k}><div className="num font-semibold text-[22px]" style={{fontFamily:'var(--f-display)',color:'var(--leaf)'}}>{v}</div><div className="t-xs on-f2 mt-1">{k}</div></div>)}</div></div>
+<p className="t-xs on-f2 text-center mt-5">Contractor dashboard with illustrative pilot data for site Trung Hòa, HN-CG-0412</p></div>}
+
+/* ===== Architecture ===== */
+const ARCH=[
+['A','Data sources','#3E6FB0','db',null,['Site cameras · 1 fps','Fence-line PM10 · upwind + downwind','Weather feed · 0–48h','Public AQ · background only','Site documents'],'Raw frames and sensor readings'],
+['B','Edge, on site','#5D6E66','camera','Jetson Orin-class · 67 INT8 TOPS',['Tier-1 detector · ~25 ms/frame','Face and plate blur before upload','Temporal filter · 7-of-10','72h store-and-forward'],'Events only: 4 keyframes and a 10 s clip, about 1.5 MB'],
+['C','Ingest and storage','#5D6E66','layers','FPT Cloud',['Event bus · Kafka','TimescaleDB + PostGIS','Evidence store · 30-day expiry','Feature store'],'Features, time series and evidence references'],
+['D','Model plane','#17694B','activity','FPT AI Factory',['M1 Dispersion risk','M2 Visual compliance · FPT AI Vision Agents','M3 Source attribution','M4 Score and exposure'],'Risk scores, layer states and findings'],
+['E','Agents and guardrails','#B87526','shield','FPT AI Agents',['ADVISOR · 18h ahead','WARDEN · corroborated finding','COACH · FPT AI Mentor','No tool files with an authority'],'Messages, cases and published ratings'],
+['F','Interfaces','#3E8E3A','bell','FPT AI Chat + Zalo ZNS',['Zalo Official Account','Contractor dashboard','Regulator console · read-only','Public page · >85% coverage'],null]];
+function Architecture(){return <div className="max-w-4xl">
+<div className="flex flex-wrap gap-x-5 gap-y-2 mb-6 t-xs mut">{[['#3E6FB0','Data source'],['#5D6E66','Infrastructure'],['#17694B','Model and logic'],['#B87526','FPT AI service'],['#3E8E3A','Interface']].map(([c,l])=><span key={l} className="flex items-center gap-1.5"><i className="w-2.5 h-2.5 rounded-sm inline-block" style={{background:c}}/>{l}</span>)}</div>
+<ol>{ARCH.map(([k,t,c,ic,fpt,items,flow])=><li key={k}>
+<div className="panel overflow-hidden grid grid-cols-[52px_1fr] lift"><div className="grid place-items-center text-white" style={{background:c}}><I n={ic} s={22}/></div><div className="p-4 sm:p-5 min-w-0"><div className="flex flex-wrap items-baseline gap-x-3 gap-y-2"><span className="font-bold t-sm" style={{color:c}}>{k}</span><h4 className="t-h3">{t}</h4>{fpt&&<span className="sm:ml-auto t-xs font-semibold rounded-full px-2.5 py-0.5" style={{color:'var(--dust-ink)',background:'var(--dust-soft)'}}>{fpt}</span>}</div><div className="flex flex-wrap gap-1.5 mt-3">{items.map(x=><span key={x} className="t-xs px-2.5 py-1 rounded-full mut" style={{background:'var(--ground-2)',border:'1px solid var(--line)'}}>{x}</span>)}</div></div></div>
+{flow&&<div className="flex items-center gap-3 py-2 pl-[25px]" aria-hidden="true"><span className="w-px h-9" style={{background:'var(--line)'}}/><span className="t-xs mut italic">{flow}</span></div>}</li>)}</ol>
+<div className="mt-6 grid sm:grid-cols-2 gap-4 t-sm"><div className="panel p-5"><div className="font-semibold pine flex items-center gap-2"><I n="loop" s={16}/>Learning loop</div><p className="mut mt-1.5">Outcomes return to the feature store. Weekly precision audit of 100 sampled decisions per site.</p></div><div className="panel p-5"><div className="font-semibold pine flex items-center gap-2"><I n="shield" s={16}/>Security</div><p className="mut mt-1.5">Blur at the edge, mTLS, a SHA-256 evidence chain, and data kept in Vietnam on FPT infrastructure.</p></div></div></div>}
+
+/* ===== Contact ===== */
+function Field({id,l,err,children}){return <div><label htmlFor={id} className="t-sm font-semibold">{l}</label>{children}{err&&<p id={id+'-err'} role="alert" className="t-sm mt-1.5" style={{color:'var(--crit)'}}>{err}</p>}</div>}
+function Contact(){
+const E={name:'',company:'',role:'',email:'',phone:'',interest:'',message:''};
+const[v,setV]=useState(E);const[er,setEr]=useState({});const[ok,setOk]=useState(false);const[copied,setCopied]=useState(false);
+const set=k=>e=>setV({...v,[k]:e.target.value});
+const submit=e=>{e.preventDefault();const x={};
+if(!v.name.trim())x.name='Enter your full name.';if(!v.company.trim())x.company='Enter your company or organisation.';if(!v.role.trim())x.role='Enter your role.';
+if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email))x.email='Enter a valid email address, for example name@company.com.';
+if(v.phone&&!/^[+\d][\d\s().-]{7,}$/.test(v.phone))x.phone='Enter a valid phone number or leave this blank.';
+if(!v.interest)x.interest='Choose what you are interested in.';if(v.message.trim().length<10)x.message='Write at least 10 characters.';
+setEr(x);setOk(!Object.keys(x).length);if(!Object.keys(x).length)setV(E)};
+const copy=()=>{const done=()=>{setCopied(true);setTimeout(()=>setCopied(false),1800)};try{navigator.clipboard.writeText(CONTACT.email).then(done,()=>{})}catch(e){}};
+const fp=k=>({id:'f-'+k,className:'field',value:v[k],onChange:set(k),'aria-invalid':!!er[k]||undefined,'aria-describedby':er[k]?'f-'+k+'-err':undefined});
+return <>
+<PageHero t="Book a pilot walkthrough" s="Thirty minutes, on site or online. We look at one of your sites, the dust controls in your permit and the cameras you already have, then show you what the first advisory would say."/>
+<section className="sec"><Wrap c="grid lg:grid-cols-[1.6fr_1fr] gap-10">
+<form onSubmit={submit} noValidate className="panel p-6 sm:p-8 grid gap-5">
+<div><h2 className="t-h3">Tell us about your site</h2><p className="t-sm mut mt-1">We reply within two working days.</p></div>
+{ok&&<div role="status" className="rounded-xl p-4" style={{background:'var(--leaf-soft)'}}><b>Thanks. This form is not connected yet, so your message was not sent.</b><p className="t-sm mut mt-1">Please email us at {CONTACT.email}.</p></div>}
+<div className="grid sm:grid-cols-2 gap-5">
+<Field id="f-name" l="Full name" err={er.name}><input {...fp('name')} autoComplete="name"/></Field>
+<Field id="f-company" l="Company or organisation" err={er.company}><input {...fp('company')} autoComplete="organization"/></Field>
+<Field id="f-role" l="Role" err={er.role}><input {...fp('role')}/></Field>
+<Field id="f-email" l="Email" err={er.email}><input type="email" {...fp('email')} autoComplete="email"/></Field>
+<Field id="f-phone" l="Phone number (optional)" err={er.phone}><input type="tel" {...fp('phone')} autoComplete="tel"/></Field>
+<Field id="f-interest" l="I’m interested in" err={er.interest}><select {...fp('interest')}><option value="">Select an option</option>{['Pilot programme','Technology partnership','Research or collaboration','Other'].map(o=><option key={o}>{o}</option>)}</select></Field></div>
+<Field id="f-message" l="Message" err={er.message}><textarea rows="5" {...fp('message')} placeholder="Where is the site, what stage is it at, and what dust problem are you dealing with?"/></Field>
+<div><button type="submit" className="btn btn-pine"><I n="send" s={16}/>Send message</button></div></form>
+<aside className="grid gap-4 content-start">
+<div className="panel p-6"><h3 className="t-h3">What happens next</h3><ol className="mt-4 grid gap-3 t-sm">{['We read your message and reply within two working days.','A 30-minute walkthrough of the dashboard, using your site as the example.','If it fits, we scope a pilot and agree what success would look like.'].map((x,i)=><li key={x} className="flex gap-3"><span className="shrink-0 w-6 h-6 rounded-full grid place-items-center t-xs font-semibold" style={{background:'var(--leaf-soft)',color:'var(--pine)'}}>{i+1}</span>{x}</li>)}</ol></div>
+<div className="panel p-6"><div className="flex items-center gap-2 t-sm mut"><I n="mail" s={16}/>Email</div><div className="flex items-center justify-between gap-3 mt-1.5"><a href={HREF.email} className="font-semibold text-[18px] break-all hover:underline" style={{fontFamily:'var(--f-display)'}}>{CONTACT.email}</a><button type="button" onClick={copy} className="btn btn-outline !px-3 !py-1.5 t-sm shrink-0" aria-live="polite"><I n="copy" s={15}/>{copied?'Copied':'Copy'}</button></div></div>
+{[['linkedin','LinkedIn',CONTACT.linkedin,HREF.linkedin],['facebook','Facebook',CONTACT.facebook,HREF.facebook]].map(([ic,l,t,h])=><a key={l} href={h} target="_blank" rel="noopener" className="panel p-6 block transition-colors hover:border-[color:var(--pine)]"><div className="flex items-center gap-2 t-sm mut"><I n={ic} s={16}/>{l}</div><div className="font-semibold mt-1.5 break-all">{t}</div></a>)}
+<div className="panel p-6"><div className="flex items-center gap-2 t-sm mut"><I n="pin" s={16}/>Location</div><div className="font-semibold mt-1.5">{CONTACT.location}</div></div>
+</aside></Wrap></section></>}
+
+/* ===== Layout ===== */
+function Nav({page}){const[o,setO]=useState(false);const[pr,setPr]=useState(0);
+useScrollPos(()=>{const h=document.documentElement;const m=h.scrollHeight-h.clientHeight;setPr(m>8?Math.min(100,h.scrollTop/m*100):0)});
+return <header className="nav"><span className="nav-prog" style={{width:pr+'%'}}/><Wrap c="flex items-center justify-between"><div style={{height:'var(--nav-h)'}} className="flex items-center"><A to="home" aria-label="PreventAir AI home"><Brand size={34}/></A></div>
+<nav className="hidden md:flex items-center gap-8" aria-label="Main">{PAGES.map(([k,l])=><A key={k} to={k} className="nav-link" aria-current={page===k?'page':undefined}>{l}</A>)}<A to="contact" className="btn btn-pine !py-2.5 !px-4 !text-[15px]">Book a walkthrough</A></nav>
+<button type="button" className="md:hidden p-2 -mr-2" aria-label={o?'Close menu':'Open menu'} aria-expanded={o} onClick={()=>setO(!o)}><I n={o?'x':'menu'} s={26}/></button></Wrap>
+{o&&<nav className="md:hidden border-t line" aria-label="Mobile"><Wrap c="pb-5">{PAGES.map(([k,l])=><A key={k} to={k} onClick={()=>setO(false)} aria-current={page===k?'page':undefined} className="block py-3.5 border-b line font-medium" style={{fontFamily:'var(--f-display)'}}>{l}</A>)}<A to="contact" onClick={()=>setO(false)} className="btn btn-pine w-full mt-4">Book a walkthrough</A></Wrap></nav>}</header>}
+
+function Footer(){return <footer className="sec-forest" style={{borderTop:'1px solid var(--forest-line)'}}><Wrap c="py-14">
+<div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
+<div><Brand onDark size={38}/><p className="mt-4 font-medium" style={{fontFamily:'var(--f-display)',color:'var(--leaf)'}}>AI for a safer construction site</p><p className="t-sm on-f2 mt-2 max-w-sm">Dust-risk intelligence for cleaner construction in Hanoi. A university project concept, not yet commercially deployed.</p></div>
+<nav aria-label="Footer" className="grid gap-2.5 content-start">{PAGES.map(([k,l])=><A key={k} to={k} className="on-f2 hover:text-white">{l}</A>)}</nav>
+<div className="grid gap-3 content-start t-sm"><a href={HREF.email} className="on-f2 hover:text-white break-all">{CONTACT.email}</a>
+<div className="flex gap-2.5 mt-1">{[['linkedin','LinkedIn',HREF.linkedin],['facebook','Facebook',HREF.facebook],['mail','Email',HREF.email]].map(([ic,l,h])=><a key={l} href={h} target={h.startsWith('http')?'_blank':undefined} rel="noopener" aria-label={`PreventAir AI on ${l}`} title={l} className="w-10 h-10 rounded-full grid place-items-center transition-colors hover:bg-[color:var(--forest-2)]" style={{border:'1px solid var(--forest-line)'}}><I n={ic} s={17}/></a>)}</div></div></div>
+<p className="mt-12 pt-6 t-xs on-f2 border-t" style={{borderColor:'var(--forest-line)'}}>© 2026 PreventAir AI. All rights reserved.</p></Wrap></footer>}
+
+function App(){
+const[page,setPage]=useState(readHash());
+useEffect(()=>{navigate=to=>{setPage(to);try{history.pushState(null,'','#/'+to)}catch(e){}window.scrollTo({top:0})};
+const f=()=>{setPage(readHash());window.scrollTo({top:0})};addEventListener('hashchange',f);addEventListener('popstate',f);return()=>{removeEventListener('hashchange',f);removeEventListener('popstate',f)}},[]);
+useEffect(()=>{document.title=page==='home'?'PreventAir AI':`${PAGES.find(p=>p[0]===page)[1]} · PreventAir AI`},[page]);
+const P={home:Home,about:About,solution:Solution,contact:Contact}[page];
+return <><a href="#main" onClick={e=>{e.preventDefault();document.getElementById('main').focus()}} className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:bg-white focus:text-black focus:p-3 focus:rounded">Skip to content</a>
+<Nav page={page}/><main id="main" tabIndex="-1" key={page} className="fade outline-none"><P/></main><Footer/></>}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
